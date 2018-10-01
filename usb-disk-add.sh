@@ -8,6 +8,9 @@ SRC_DEVICE_NAME='sdb1'
 # Mount points
 SRC_DEVICE_MOUNT_POINT='/mnt/flashdance/source'
 DST_DEVICE_MOUNT_POINT='/mnt/flashdance/destination'
+
+# Destination folder relative path (from destination device's root)
+DST_FOLDER_PATH='/Incoming'
 #### End of settings section
 
 
@@ -18,6 +21,43 @@ echo "Source device name is '$SRC_DEVICE_NAME'"
 echo "Source device mount point is '$SRC_DEVICE_MOUNT_POINT'"
 echo "Destination device name is '$DST_DEVICE_NAME'"
 echo "Destination device mount moint is '$DST_DEVICE_MOUNT_POINT'"
+echo "Destination folder relative path is '$DST_FOLDER_PATH'"
+
+
+#### Checking settings ####
+if [ -z "$DST_DEVICE_NAME" ]
+then
+    echo "Destination device name is not set. Check settings! The script will exit now."
+    exit -1
+fi
+
+if [ -z "$SRC_DEVICE_NAME" ]
+then
+    echo "Source device name is not set. Check settings! The script will exit now."
+    exit -1
+fi
+
+if [ -z "$DST_DEVICE_MOUNT_POINT" ]
+then
+    echo "Destination mount point is not set. Check settings! The script will exit now."
+    exit -1
+else
+    # TODO: split path, check if all path exist, create if not
+fi
+
+if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
+then
+    echo "Source mount point is not set. Check settings! The script will exit now."
+    exit -1
+else
+    # TODO: split path, check if all path exist, create if not
+fi
+
+if [ -z "$DST_FOLDER_PATH" ]
+then
+    echo "Destination folder is not set. Assuming root folder."
+fi
+
 
 #### Devices discovery ####
 echo ""
@@ -97,9 +137,31 @@ else
 fi
 
 
+#### Copying files ####
+echo "Generating destination path..."
+if [ -z "$DST_FOLDER_PATH" ]
+then
+    DST_FOLDER_FULL_PATH=$("$DST_DEVICE_MOUNT_POINT")
+else
+    DST_FOLDER_FULL_PATH=$("$DST_DEVICE_MOUNT_POINT/$DST_FOLDER_PATH")
+fi
+
+if [ -z "$DST_FOLDER_FULL_PATH" ]
+then
+    echo "Unable to generate destination folder full path. Script terminated unexpectedly."
+    exit -1
+fi
+
+echo "Starting file copy process from '$SRC_DEVICE_MOUNT_POINT' to '$DST_FOLDER_FULL_PATH'..."
+#rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+echo "File copy process has finished"
+
 # Unmounting the devices from the mount point
 #umount -f $SRC_DEVICE_MOUNT_POINT
+# TODO: check if unmounted successfully, exit if not
+
 #umount -f $DST_DEVICE_MOUNT_POINT
+# TODO: check if unmounted successfully, exit if not
 
 echo ""
 echo "The script has run to it's end"
