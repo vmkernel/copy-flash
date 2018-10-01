@@ -21,7 +21,7 @@ echo "Source device name is '$SRC_DEVICE_NAME'"
 echo "Source device mount point is '$SRC_DEVICE_MOUNT_POINT'"
 echo "Destination device name is '$DST_DEVICE_NAME'"
 echo "Destination device mount moint is '$DST_DEVICE_MOUNT_POINT'"
-echo "Destination folder relative path is '$DST_FOLDER_PATH'"
+echo "Destination folder relative path is '$DST_FOLDER_ROOT'"
 
 
 #### Checking settings ####
@@ -53,7 +53,7 @@ else
     # TODO: split path, check if all path exist, create if not
 fi
 
-if [ -z "$DST_FOLDER_PATH" ]
+if [ -z "$DST_FOLDER_ROOT" ]
 then
     echo "Destination folder is not set. Assuming root folder."
 fi
@@ -137,25 +137,49 @@ else
 fi
 
 
-#### Copying files ####
-echo "Generating destination path..."
-if [ -z "$DST_FOLDER_PATH" ]
+#### Generating destination folder ####
+echo "Generating destination root path..."
+if [ -z "$DST_FOLDER_ROOT" ]
 then
     DST_FOLDER_FULL_PATH=$("$DST_DEVICE_MOUNT_POINT")
 else
-    DST_FOLDER_FULL_PATH=$("$DST_DEVICE_MOUNT_POINT/$DST_FOLDER_PATH")
+    DST_FOLDER_FULL_PATH=$("$DST_DEVICE_MOUNT_POINT/$DST_FOLDER_ROOT")
 fi
 
 if [ -z "$DST_FOLDER_FULL_PATH" ]
 then
-    echo "Unable to generate destination folder full path. Script terminated unexpectedly."
+    echo "Unable to generate destination folder root path. Script terminated unexpectedly."
     exit -1
+else
+    echo "Using destination folder root '$DST_FOLDER_FULL_PATH'"
 fi
 
+
+echo "Extracting current date and time..."
+DST_FOLDER_NAME=$(date +"%Y-%m-%d %H-%M")
+if [ -z "$DST_FOLDER_NAME" ]
+then
+    echo "Unable to generate nested folder with current date and time. Will use root folder as the destination."
+else
+    DST_FOLDER_FULL_PATH=$("$DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME")
+    if [ -z "$DST_FOLDER_FULL_PATH" ]
+    then
+        echo "Unable to generate destination folder path. Script terminated unexpectedly."
+        exit -1
+    else
+        echo "Using destination folder full path '$DST_FOLDER_FULL_PATH'"
+    fi
+fi
+# TODO: split path, check if all path exist, create if not
+
+
+#### Copying files ####
 echo "Starting file copy process from '$SRC_DEVICE_MOUNT_POINT' to '$DST_FOLDER_FULL_PATH'..."
 #rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
 echo "File copy process has finished"
 
+
+#### Cleaning up ####
 # Unmounting the devices from the mount point
 #umount -f $SRC_DEVICE_MOUNT_POINT
 # TODO: check if unmounted successfully, exit if not
