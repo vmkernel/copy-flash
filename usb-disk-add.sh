@@ -6,8 +6,8 @@ DST_DEVICE_NAME='sda1'
 SRC_DEVICE_NAME='sdb1'
 
 # Mount points
-SRC_DEVICE_MOUNT_POINT='/mnt/flashdance/source'
-DST_DEVICE_MOUNT_POINT='/mnt/flashdance/destination'
+SRC_DEVICE_MOUNT_POINT='/mnt/flash-dance/source'
+DST_DEVICE_MOUNT_POINT='/mnt/flash-dance/destination'
 
 # Destination folder relative path (from destination device's root)
 DST_FOLDER_ROOT='Incoming'
@@ -157,7 +157,7 @@ echo ""
 echo "Generating destination root path..."
 if [ -z "$DST_FOLDER_ROOT" ]
 then
-    DST_FOLDER_FULL_PATH=$("$DST_DEVICE_MOUNT_POINT")
+    DST_FOLDER_FULL_PATH="$DST_DEVICE_MOUNT_POINT"
 else
     DST_FOLDER_FULL_PATH="$DST_DEVICE_MOUNT_POINT/$DST_FOLDER_ROOT"
 fi
@@ -171,7 +171,7 @@ else
 fi
 
 echo "Extracting current date and time..."
-DST_FOLDER_NAME=$(date +"%Y-%m-%d %H-%M")
+DST_FOLDER_NAME=$(date +"%Y-%m-%d_%H-%M")
 if [ -z "$DST_FOLDER_NAME" ]
 then
     echo "Unable to generate nested folder with current date and time. Will use root folder as the destination."
