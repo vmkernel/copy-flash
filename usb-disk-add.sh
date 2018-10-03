@@ -42,7 +42,7 @@ then
     echo "Destination mount point is not set. Check settings! The script terminated unexpectedly."
     exit -1
 else
-    # TODO: split path, check if all path exist, create if not
+    mkdir -p $DST_DEVICE_MOUNT_POINT
 fi
 
 if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
@@ -50,7 +50,7 @@ then
     echo "Source mount point is not set. Check settings! The script terminated unexpectedly."
     exit -1
 else
-    # TODO: split path, check if all path exist, create if not
+    mkdir -p $SRC_DEVICE_MOUNT_POINT
 fi
 
 if [ -z "$DST_FOLDER_ROOT" ]
@@ -168,7 +168,6 @@ else
     echo "Using destination folder root '$DST_FOLDER_FULL_PATH'"
 fi
 
-
 echo "Extracting current date and time..."
 DST_FOLDER_NAME=$(date +"%Y-%m-%d %H-%M")
 if [ -z "$DST_FOLDER_NAME" ]
@@ -184,7 +183,8 @@ else
         echo "Using destination folder full path '$DST_FOLDER_FULL_PATH'"
     fi
 fi
-# TODO: split path, check if all path exist, create if not
+
+mkdir -p $DST_FOLDER_FULL_PATH
 
 
 #### Copying files ####
