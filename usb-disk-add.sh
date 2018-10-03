@@ -27,19 +27,19 @@ echo "Destination folder relative path is '$DST_FOLDER_ROOT'"
 #### Checking settings ####
 if [ -z "$DST_DEVICE_NAME" ]
 then
-    echo "Destination device name is not set. Check settings! The script will exit now."
+    echo "Destination device name is not set. Check settings! The script terminated unexpectedly."
     exit -1
 fi
 
 if [ -z "$SRC_DEVICE_NAME" ]
 then
-    echo "Source device name is not set. Check settings! The script will exit now."
+    echo "Source device name is not set. Check settings! The script terminated unexpectedly."
     exit -1
 fi
 
 if [ -z "$DST_DEVICE_MOUNT_POINT" ]
 then
-    echo "Destination mount point is not set. Check settings! The script will exit now."
+    echo "Destination mount point is not set. Check settings! The script terminated unexpectedly."
     exit -1
 else
     # TODO: split path, check if all path exist, create if not
@@ -47,7 +47,7 @@ fi
 
 if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
 then
-    echo "Source mount point is not set. Check settings! The script will exit now."
+    echo "Source mount point is not set. Check settings! The script terminated unexpectedly."
     exit -1
 else
     # TODO: split path, check if all path exist, create if not
@@ -67,7 +67,7 @@ echo "Seaching for the devices..."
 SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $SRC_DEVICE_NAME | awk '{print $9}')
 if [ -z "$SRC_DEVICE_ID" ]
 then
-    echo "Source device not found, exiting"
+    echo "Source device not found. The script terminated unexpectedly."
     exit -1
 else
     echo "Source device found with name '$SRC_DEVICE_NAME' and id '$SRC_DEVICE_ID'"
@@ -77,7 +77,7 @@ fi
 DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $DST_DEVICE_NAME | awk '{print $9}')
 if [ -z "$DST_DEVICE_ID" ]
 then
-    echo "Destination device not found, exiting"
+    echo "Destination device not found. The script terminated unexpectedly."
     exit -1
 else
     echo "Destination device found with name '$DST_DEVICE_NAME' and id '$DST_DEVICE_ID'"
@@ -95,8 +95,15 @@ then
     echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is free"
 else
     echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is already in use, unmounting..."
-    # TODO: check if unmounted successfully, exit if not
     umount $SRC_DEVICE_MOUNT_POINT
+    MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
+    if [ -z "$MOUNT_STATUS" ]
+    then 
+        echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been successfully unmounted"
+    else 
+        echo "Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The script terminated unexpectedly."
+        exit -1
+    fi
 fi
 
 # Unmounting the source mount point if it's already mounted
@@ -106,8 +113,15 @@ then
     echo "The mount point '$DST_DEVICE_MOUNT_POINT' is free"
 else
     echo "The mount point '$DST_DEVICE_MOUNT_POINT' is already in use, unmounting..."
-    # TODO: check if unmounted successfully, exit if not
     umount $DST_DEVICE_MOUNT_POINT
+    MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
+    if [ -z "$MOUNT_STATUS" ]
+    then 
+        echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been successfully unmounted"
+    else 
+        echo "Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The script terminated unexpectedly."
+        exit -1
+    fi
 fi
 
 
@@ -148,7 +162,7 @@ fi
 
 if [ -z "$DST_FOLDER_FULL_PATH" ]
 then
-    echo "Unable to generate destination folder root path. Script terminated unexpectedly."
+    echo "Unable to generate destination folder root path. The script terminated unexpectedly."
     exit -1
 else
     echo "Using destination folder root '$DST_FOLDER_FULL_PATH'"
@@ -164,7 +178,7 @@ else
     DST_FOLDER_FULL_PATH=$("$DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME")
     if [ -z "$DST_FOLDER_FULL_PATH" ]
     then
-        echo "Unable to generate destination folder path. Script terminated unexpectedly."
+        echo "Unable to generate destination folder path. The script terminated unexpectedly."
         exit -1
     else
         echo "Using destination folder full path '$DST_FOLDER_FULL_PATH'"
@@ -180,12 +194,25 @@ echo "File copy process has finished"
 
 
 #### Cleaning up ####
-# Unmounting the devices from the mount point
-#umount -f $SRC_DEVICE_MOUNT_POINT
-# TODO: check if unmounted successfully, exit if not
+# Unmounting the source devices from the mount point
+#umount $SRC_DEVICE_MOUNT_POINT
+#MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
+#if [ -z "$MOUNT_STATUS" ]
+#then
+#    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been sucessfully unmounted"
+#else
+#    echo "Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'."
+#fi
 
+# Unmounting the destination devices from the mount point
 #umount -f $DST_DEVICE_MOUNT_POINT
-# TODO: check if unmounted successfully, exit if not
+#MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
+#if [ -z "$MOUNT_STATUS" ]
+#then
+#    echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been sucessfully unmounted"
+#else
+#    echo "Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'."
+#fi
 
 echo ""
 echo "The script has run to it's end"
