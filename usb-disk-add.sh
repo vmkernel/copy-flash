@@ -10,7 +10,7 @@ SRC_DEVICE_MOUNT_POINT='/mnt/flashdance/source'
 DST_DEVICE_MOUNT_POINT='/mnt/flashdance/destination'
 
 # Destination folder relative path (from destination device's root)
-DST_FOLDER_PATH='/Incoming'
+DST_FOLDER_ROOT='Incoming'
 #### End of settings section
 
 
@@ -18,10 +18,10 @@ echo "The script has started"
 echo ""
 echo "Reading settings..."
 echo "Source device name is '$SRC_DEVICE_NAME'"
-echo "Source device mount point is '$SRC_DEVICE_MOUNT_POINT'"
+echo "Source device's mount point is '$SRC_DEVICE_MOUNT_POINT'"
 echo "Destination device name is '$DST_DEVICE_NAME'"
-echo "Destination device mount moint is '$DST_DEVICE_MOUNT_POINT'"
-echo "Destination folder relative path is '$DST_FOLDER_ROOT'"
+echo "Destination device's mount moint is '$DST_DEVICE_MOUNT_POINT'"
+echo "Destination folder's relative path is '$DST_FOLDER_ROOT'"
 
 
 #### Checking settings ####
@@ -42,7 +42,7 @@ then
     echo "Destination mount point is not set. Check settings! The script terminated unexpectedly."
     exit -1
 else
-    mkdir -p $DST_DEVICE_MOUNT_POINT
+    mkdir --parents $DST_DEVICE_MOUNT_POINT
 fi
 
 if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
@@ -50,7 +50,7 @@ then
     echo "Source mount point is not set. Check settings! The script terminated unexpectedly."
     exit -1
 else
-    mkdir -p $SRC_DEVICE_MOUNT_POINT
+    mkdir --parents $SRC_DEVICE_MOUNT_POINT
 fi
 
 if [ -z "$DST_FOLDER_ROOT" ]
@@ -127,6 +127,7 @@ fi
 
 #### Mounting devices ####
 echo ""
+echo "Mounting devices..."
 # Mounting the devices to the mount points
 echo "Mounting source device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT'..."
 mount /dev/$SRC_DEVICE_NAME $SRC_DEVICE_MOUNT_POINT
@@ -152,12 +153,13 @@ fi
 
 
 #### Generating destination folder ####
+echo ""
 echo "Generating destination root path..."
 if [ -z "$DST_FOLDER_ROOT" ]
 then
     DST_FOLDER_FULL_PATH=$("$DST_DEVICE_MOUNT_POINT")
 else
-    DST_FOLDER_FULL_PATH=$("$DST_DEVICE_MOUNT_POINT/$DST_FOLDER_ROOT")
+    DST_FOLDER_FULL_PATH="$DST_DEVICE_MOUNT_POINT/$DST_FOLDER_ROOT"
 fi
 
 if [ -z "$DST_FOLDER_FULL_PATH" ]
@@ -174,7 +176,7 @@ if [ -z "$DST_FOLDER_NAME" ]
 then
     echo "Unable to generate nested folder with current date and time. Will use root folder as the destination."
 else
-    DST_FOLDER_FULL_PATH=$("$DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME")
+    DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME"
     if [ -z "$DST_FOLDER_FULL_PATH" ]
     then
         echo "Unable to generate destination folder path. The script terminated unexpectedly."
@@ -184,7 +186,7 @@ else
     fi
 fi
 
-mkdir -p $DST_FOLDER_FULL_PATH
+mkdir --parents $DST_FOLDER_FULL_PATH
 
 
 #### Copying files ####
