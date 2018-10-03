@@ -98,9 +98,9 @@ else
     umount $SRC_DEVICE_MOUNT_POINT
     MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
     if [ -z "$MOUNT_STATUS" ]
-    then 
+    then
         echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been successfully unmounted"
-    else 
+    else
         echo "Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The script terminated unexpectedly."
         exit -1
     fi
@@ -116,9 +116,9 @@ else
     umount $DST_DEVICE_MOUNT_POINT
     MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
     if [ -z "$MOUNT_STATUS" ]
-    then 
+    then
         echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been successfully unmounted"
-    else 
+    else
         echo "Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The script terminated unexpectedly."
         exit -1
     fi
