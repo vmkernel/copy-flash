@@ -29,19 +29,19 @@ echo "Destination folder's relative path is '$DST_FOLDER_ROOT'"
 if [ -z "$DST_DEVICE_NAME" ]
 then
     echo "Destination device name is not set. Check settings! The script has terminated unexpectedly."
-    exit -1
+    exit 1
 fi
 
 if [ -z "$SRC_DEVICE_NAME" ]
 then
     echo "Source device name is not set. Check settings! The script has terminated unexpectedly."
-    exit -1
+    exit 1
 fi
 
 if [ -z "$DST_DEVICE_MOUNT_POINT" ]
 then
     echo "Destination mount point is not set. Check settings! The script has terminated unexpectedly."
-    exit -1
+    exit 1
 else
     mkdir --parents $DST_DEVICE_MOUNT_POINT
 fi
@@ -49,7 +49,7 @@ fi
 if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
 then
     echo "Source mount point is not set. Check settings! The script has terminated unexpectedly."
-    exit -1
+    exit 1
 else
     mkdir --parents $SRC_DEVICE_MOUNT_POINT
 fi
@@ -69,7 +69,7 @@ SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $SRC_DEVICE_NAME | awk '{print
 if [ -z "$SRC_DEVICE_ID" ]
 then
     echo "Source device not found. The script has terminated unexpectedly."
-    exit -1
+    exit 1
 else
     echo "Source device found with name '$SRC_DEVICE_NAME' and id '$SRC_DEVICE_ID'"
 fi
@@ -79,7 +79,7 @@ DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $DST_DEVICE_NAME | awk '{print
 if [ -z "$DST_DEVICE_ID" ]
 then
     echo "Destination device not found. The script has terminated unexpectedly."
-    exit -1
+    exit 1
 else
     echo "Destination device found with name '$DST_DEVICE_NAME' and id '$DST_DEVICE_ID'"
 fi
@@ -103,7 +103,7 @@ else
         echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been successfully unmounted"
     else
         echo "Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The script has terminated unexpectedly."
-        exit -1
+        exit 1
     fi
 fi
 
@@ -121,7 +121,7 @@ else
         echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been successfully unmounted"
     else
         echo "Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The script has terminated unexpectedly."
-        exit -1
+        exit 1
     fi
 fi
 
@@ -136,7 +136,7 @@ MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "Unable to mount device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT, exiting"
-    exit -2
+    exit 
 else
     echo "The mount point '$SRC_DEVICE_MOUNT_POINT' successfully mounted"
 fi
@@ -147,7 +147,7 @@ MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "Unable to mount device '$DST_DEVICE_NAME ' to mount point '$DST_DEVICE_MOUNT_POINT, exiting"
-    exit -2
+    exit 
 else
     echo "The mount point '$DST_DEVICE_MOUNT_POINT' successfully mounted"
 fi
@@ -166,7 +166,7 @@ fi
 if [ -z "$DST_FOLDER_FULL_PATH" ]
 then
     echo "Unable to generate destination folder root path. The script has terminated unexpectedly."
-    exit -1
+    exit 1
 else
     echo "Using destination folder root '$DST_FOLDER_FULL_PATH'"
 fi
@@ -184,7 +184,7 @@ else
     if [ -z "$DST_FOLDER_FULL_PATH" ]
     then
         echo "Unable to generate destination folder path. The script has terminated unexpectedly."
-        exit -1
+        exit 1
     else
         echo "Using destination folder full path '$DST_FOLDER_FULL_PATH'"
     fi
