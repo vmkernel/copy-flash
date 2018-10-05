@@ -14,10 +14,12 @@ LOG_FILE_BASE_NAME='debug' # Log file base name
 #### End of settings ####
 
 
+#### Main part ####
+SCRIPT_NAME=`basename "$0"`
 echo ""
-echo "The script has started"
+echo "The script has started ($SCRIPT_NAME)"
+
 #### Checking settings ####
-echo ""
 echo "Checking settings..."
 # Nested script's path
 if [ -z "$SCRIPT_PATH" ]
@@ -63,4 +65,5 @@ echo "Starting nested script '$SCRIPT_PATH'"
 
 # TODO: Add return value analysis
 
-echo "The script has run to it's end"
+echo "The script has run to it's end ($SCRIPT_NAME)"
+echo ""

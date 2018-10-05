@@ -18,9 +18,9 @@ DST_FOLDER_ROOT='Incoming' # Destination folder's relative path (from destinatio
 
 
 #### Main part ####
+SCRIPT_NAME=`basename "$0"`
 echo ""
-echo "The script has started"
-echo ""
+echo "The script has started ($SCRIPT_NAME)"
 echo "Reading settings..."
 echo "Source device name is '$SRC_DEVICE_NAME'"
 echo "Source device's mount point is '$SRC_DEVICE_MOUNT_POINT'"
@@ -65,7 +65,6 @@ fi
 
 
 #### Devices discovery ####
-echo ""
 echo "Seaching for the devices..."
 
 # Searching for a source device
@@ -90,7 +89,6 @@ fi
 
 
 #### Checking if the mount points are free ####
-echo ""
 echo "Checking mount points..."
 
 # Unmounting the source mount point if it's already mounted
@@ -132,7 +130,6 @@ fi
 
 #### Mounting devices ####
 # Mounting the devices to the mount points
-echo ""
 echo "Mounting devices..."
 echo "Mounting source device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT'..."
 mount /dev/$SRC_DEVICE_NAME $SRC_DEVICE_MOUNT_POINT
@@ -158,7 +155,6 @@ fi
 
 
 #### Generating destination folder path ####
-echo ""
 echo "Generating destination root path..."
 if [ -z "$DST_FOLDER_ROOT" ]
 then
@@ -227,7 +223,7 @@ else
 #    halt
 fi
 
+echo "The script has run to it's end ($SCRIPT_NAME)"
 echo ""
-echo "The script has run to it's end"
 # halt
 exit 0
