@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# INFO: udev runs scripts in root (/) folder
+# INFO
+# udev runs scripts in root (/) folder
+
 # TODO: detect devices automatically: the first attached device sdX should be the destination device, the second sd(X+1) should be the source device.
 # TODO: find a way to notify user when copy process has started and has finished.
 

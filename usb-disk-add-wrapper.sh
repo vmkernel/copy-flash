@@ -3,8 +3,8 @@
 # DESCRIPTION
 # This scripts starts nested script and redirects its output to a log file
 
-# INFO: udev runs scripts in root (/) folder
-# TODO: find a way to write a log file to persistent storage.
+# INFO
+# udev runs scripts in root (/) folder
 
 #### Settings ####
 # TODO: learn the script to work with relative path
