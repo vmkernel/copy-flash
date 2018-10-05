@@ -32,19 +32,19 @@ echo "Destination folder's relative path is '$DST_FOLDER_ROOT'"
 #### Checking settings ####
 if [ -z "$DST_DEVICE_NAME" ]
 then
-    echo "Destination device name is not set. Check settings! The script has terminated unexpectedly."
+    echo "ERROR: Destination device name is not set. Check settings! The script has terminated unexpectedly"
     exit 1
 fi
 
 if [ -z "$SRC_DEVICE_NAME" ]
 then
-    echo "Source device name is not set. Check settings! The script has terminated unexpectedly."
+    echo "ERROR: Source device name is not set. Check settings! The script has terminated unexpectedly"
     exit 1
 fi
 
 if [ -z "$DST_DEVICE_MOUNT_POINT" ]
 then
-    echo "Destination mount point is not set. Check settings! The script has terminated unexpectedly."
+    echo "ERROR: Destination mount point is not set. Check settings! The script has terminated unexpectedly"
     exit 1
 else
     mkdir --parents $DST_DEVICE_MOUNT_POINT
@@ -52,7 +52,7 @@ fi
 
 if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
 then
-    echo "Source mount point is not set. Check settings! The script has terminated unexpectedly."
+    echo "ERROR: Source mount point is not set. Check settings! The script has terminated unexpectedly"
     exit 1
 else
     mkdir --parents $SRC_DEVICE_MOUNT_POINT
@@ -60,7 +60,7 @@ fi
 
 if [ -z "$DST_FOLDER_ROOT" ]
 then
-    echo "Destination folder is not set. Assuming root folder."
+    echo "ERROR: Destination folder is not set. Assuming root folder"
 fi
 
 
@@ -71,8 +71,8 @@ echo "Seaching for the devices..."
 SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $SRC_DEVICE_NAME | awk '{print $9}')
 if [ -z "$SRC_DEVICE_ID" ]
 then
-    echo "Source device not found. The script has terminated unexpectedly."
-    exit 1
+    echo "ERROR: Source device not found. The script has terminated unexpectedly"
+    exit 2
 else
     echo "Source device found with name '$SRC_DEVICE_NAME' and id '$SRC_DEVICE_ID'"
 fi
@@ -81,8 +81,8 @@ fi
 DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $DST_DEVICE_NAME | awk '{print $9}')
 if [ -z "$DST_DEVICE_ID" ]
 then
-    echo "Destination device not found. The script has terminated unexpectedly."
-    exit 1
+    echo "ERROR: Destination device not found. The script has terminated unexpectedly"
+    exit 2
 else
     echo "Destination device found with name '$DST_DEVICE_NAME' and id '$DST_DEVICE_ID'"
 fi
@@ -104,8 +104,8 @@ else
     then
         echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been successfully unmounted"
     else
-        echo "Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The script has terminated unexpectedly."
-        exit 1
+        echo "ERROR: Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The script has terminated unexpectedly"
+        exit 3
     fi
 fi
 
@@ -122,8 +122,8 @@ else
     then
         echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been successfully unmounted"
     else
-        echo "Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The script has terminated unexpectedly."
-        exit 1
+        echo "ERROR: Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The script has terminated unexpectedly"
+        exit 3
     fi
 fi
 
@@ -136,8 +136,8 @@ mount /dev/$SRC_DEVICE_NAME $SRC_DEVICE_MOUNT_POINT
 MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
-    echo "Unable to mount device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT, exiting"
-    exit 
+    echo "ERROR: Unable to mount device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT. The script has terminated unexpectedly"
+    exit 4
 else
     echo "The mount point '$SRC_DEVICE_MOUNT_POINT' successfully mounted"
 fi
@@ -147,8 +147,8 @@ mount /dev/$DST_DEVICE_NAME $DST_DEVICE_MOUNT_POINT
 MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
-    echo "Unable to mount device '$DST_DEVICE_NAME ' to mount point '$DST_DEVICE_MOUNT_POINT, exiting"
-    exit 
+    echo "ERROR: Unable to mount device '$DST_DEVICE_NAME ' to mount point '$DST_DEVICE_MOUNT_POINT. The script has terminated unexpectedly"
+    exit 4
 else
     echo "The mount point '$DST_DEVICE_MOUNT_POINT' successfully mounted"
 fi
@@ -165,8 +165,8 @@ fi
 
 if [ -z "$DST_FOLDER_FULL_PATH" ]
 then
-    echo "Unable to generate destination folder root path. The script has terminated unexpectedly."
-    exit 1
+    echo "ERROR: Unable to generate destination folder root path. The script has terminated unexpectedly"
+    exit 5
 else
     echo "Using destination folder root '$DST_FOLDER_FULL_PATH'"
 fi
@@ -178,13 +178,13 @@ echo "Extracting current date and time..."
 DATE=$(date +"%F_%H-%M-%S")
 if [ -z "$DATE" ]
 then
-    echo "Unable to generate nested folder with current date and time. Will use root folder as the destination."
+    echo "WARNING: Unable to generate nested folder with current date and time. Will use root folder as the destination"
 else
     DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH/$DATE"
     if [ -z "$DST_FOLDER_FULL_PATH" ]
     then
-        echo "Unable to generate destination folder path. The script has terminated unexpectedly."
-        exit 1
+        echo "ERROR: Unable to generate destination folder path. The script has terminated unexpectedly"
+        exit 5
     else
         echo "Using destination folder full path '$DST_FOLDER_FULL_PATH'"
     fi
@@ -196,6 +196,7 @@ mkdir --parents $DST_FOLDER_FULL_PATH
 #### Copying files ####
 echo "Starting file copy process from '$SRC_DEVICE_MOUNT_POINT' to '$DST_FOLDER_FULL_PATH'..."
 #rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+# TODO: analyze exit code
 echo "File copy process has finished"
 
 
@@ -207,7 +208,7 @@ if [ -z "$MOUNT_STATUS" ]
 then
     echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been sucessfully unmounted"
 else
-    echo "Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The device will halt in order to keep file system on the destination consistent."
+    echo "ERROR: Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The device will halt in order to keep file system on the destination consistent"
 #    halt
 fi
 
@@ -219,7 +220,7 @@ if [ -z "$MOUNT_STATUS" ]
 then
     echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been sucessfully unmounted"
 else
-    echo "Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The device will halt in order to keep file system on the source consistent."
+    echo "ERROR: Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The device will halt in order to keep file system on the source consistent"
 #    halt
 fi
 
