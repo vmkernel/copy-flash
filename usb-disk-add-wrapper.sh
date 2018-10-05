@@ -3,10 +3,12 @@
 # DESCRIPTION
 # This scripts starts nested script and redirects its output to a log file
 
+# INFO: udev runs scripts in root (/) folder
 # TODO: find a way to write a log file to persistent storage.
 
 #### Settings ####
-SCRIPT_PATH='./usb-disk-add.sh' # Nested script's path
+# TODO: learn the script to work with relative path
+SCRIPT_PATH='/usr/local/etc/udev/scripts/usb-disk-add.sh' # Nested script's path
 LOG_FILE_FOLDER='/var/log/flash-dance' # Path to a parent folder of a log files
 LOG_FILE_BASE_NAME='debug' # Log file base name
 #### End of settings ####
@@ -56,5 +58,9 @@ fi
 echo "Using log file '$LOG_FILE'."
 
 
-echo "Starting nested script"
+echo "Starting nested script '$SCRIPT_PATH'"
 "$SCRIPT_PATH" | tee "$LOG_FILE"
+
+# TODO: Add return value analysis
+
+echo "The script has run to it's end"
