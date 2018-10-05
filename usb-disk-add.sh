@@ -2,7 +2,6 @@
 
 # TODO: detect devices automatically: the first attached device sdX should be the destination device, the second sd(X+1) should be the source device.
 # TODO: find a way to notify user when copy process has started and has finished.
-# TODO: find a way to write a log file to persistent storage.
 
 #### SETTINGS ####
 DST_DEVICE_NAME='sda1' # Source device name
@@ -15,6 +14,7 @@ DST_FOLDER_ROOT='Incoming' # Destination folder's relative path (from destinatio
 #### End of settings section
 
 
+#### Main part ####
 echo "The script has started"
 echo ""
 echo "Reading settings..."
@@ -175,12 +175,12 @@ fi
 # it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 # it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 echo "Extracting current date and time..."
-DST_FOLDER_NAME=$(date +"%Y-%m-%d_%H-%M")
-if [ -z "$DST_FOLDER_NAME" ]
+DATE=$(date +"%F_%H-%M-%S")
+if [ -z "$DATE" ]
 then
     echo "Unable to generate nested folder with current date and time. Will use root folder as the destination."
 else
-    DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME"
+    DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH/$DATE"
     if [ -z "$DST_FOLDER_FULL_PATH" ]
     then
         echo "Unable to generate destination folder path. The script has terminated unexpectedly."
@@ -201,27 +201,27 @@ echo "File copy process has finished"
 
 #### Cleaning up ####
 # Unmounting the destination devices from the mount point
-#umount -f $DST_DEVICE_MOUNT_POINT
-#MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
-#if [ -z "$MOUNT_STATUS" ]
-#then
-#    echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been sucessfully unmounted"
-#else
-#    echo "Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The device will halt in order to keep file system on the destination consistent.
+umount -f $DST_DEVICE_MOUNT_POINT
+MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
+if [ -z "$MOUNT_STATUS" ]
+then
+    echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been sucessfully unmounted"
+else
+    echo "Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The device will halt in order to keep file system on the destination consistent."
 #    halt
-#fi
+fi
 
 #### Cleaning up ####
 # Unmounting the source devices from the mount point
-#umount $SRC_DEVICE_MOUNT_POINT
-#MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
-#if [ -z "$MOUNT_STATUS" ]
-#then
-#    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been sucessfully unmounted"
-#else
-#    echo "Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The device will halt in order to keep file system on the source consistent.
+umount $SRC_DEVICE_MOUNT_POINT
+MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
+if [ -z "$MOUNT_STATUS" ]
+then
+    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been sucessfully unmounted"
+else
+    echo "Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The device will halt in order to keep file system on the source consistent."
 #    halt
-#fi
+fi
 
 echo ""
 echo "The script has run to it's end"
