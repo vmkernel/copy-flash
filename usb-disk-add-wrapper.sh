@@ -60,10 +60,16 @@ fi
 echo "Using log file '$LOG_FILE'."
 
 
-echo "Starting nested script '$SCRIPT_PATH'"
+echo "Starting nested script '$SCRIPT_PATH'..."
 "$SCRIPT_PATH" | tee "$LOG_FILE"
 
-# TODO: Add return value analysis
+RETURN_CODE=$?
+if [ $RETURN_CODE -eq 0 ]
+then
+    echo "The nested script has finished succesfully"
+else 
+    echo "The nested script has finished with errors. Return code is $RETURN_CODE"
+fi
 
 echo "The script has run to it's end ($SCRIPT_NAME)"
 echo ""
