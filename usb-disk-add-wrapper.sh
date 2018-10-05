@@ -66,7 +66,7 @@ echo "Starting nested script '$SCRIPT_PATH'..."
 RETURN_CODE=$?
 if [ $RETURN_CODE -eq 0 ]
 then
-    echo "The nested script has finished succesfully"
+    echo "The nested script has finished successfully"
 else 
     echo "ERROR: The nested script has finished with errors. Return code is $RETURN_CODE"
 fi
