@@ -15,6 +15,7 @@ DST_FOLDER_ROOT='Incoming' # Destination folder's relative path (from destinatio
 
 
 #### Main part ####
+echo ""
 echo "The script has started"
 echo ""
 echo "Reading settings..."
