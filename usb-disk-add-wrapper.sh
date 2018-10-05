@@ -63,15 +63,7 @@ echo "Using log file '$LOG_FILE'."
 echo "Starting nested script '$SCRIPT_PATH'..."
 "$SCRIPT_PATH" | tee "$LOG_FILE"
 
-RETURN_CODE=$?
-if [ $RETURN_CODE -eq 0 ]
-then
-    echo "The nested script has finished successfully"
-else 
-    echo "ERROR: The nested script has finished with errors. Return code is $RETURN_CODE"
-fi
-
 echo "The script has run to it's end ($SCRIPT_NAME)"
 echo ""
 
-exit $RETURN_CODE
+exit 0

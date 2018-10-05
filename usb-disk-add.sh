@@ -196,13 +196,8 @@ mkdir --parents $DST_FOLDER_FULL_PATH
 #### Copying files ####
 echo "Starting file copy process from '$SRC_DEVICE_MOUNT_POINT' to '$DST_FOLDER_FULL_PATH'..."
 #rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
-RETURN_CODE=$?
-if [ $RETURN_CODE -eq 0 ]
-then
-    echo "Copy process has finished successfully. Return code is $RETURN_CODE"
-else 
-    echo "ERROR: copy process has finished with error(s). Return code is $RETURN_CODE"
-fi
+EXIT_CODE=$?
+echo "Copy process has finished with exit code is $EXIT_CODE"
 
 
 #### Cleaning up ####
@@ -232,4 +227,4 @@ fi
 echo "The script has run to it's end ($SCRIPT_NAME)"
 echo ""
 # halt
-exit $RETURN_CODE
+exit $EXIT_CODE
