@@ -176,23 +176,20 @@ fi
 # it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 # TODO: use original file creation date
 
-#echo "Extracting current date and time..."
-#DATE=$(date +"%F_%H-%M-%S")
-#if [ -z "$DATE" ]
-#then
-#    echo "WARNING: Unable to generate nested folder with current date and time. Will use root folder as the destination"
-#else
-#    DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH/$DATE"
-#    if [ -z "$DST_FOLDER_FULL_PATH" ]
-#    then
-#        echo "ERROR: Unable to generate destination folder path. The script has terminated unexpectedly"
-#        exit 1
-#    else
-#        echo "Using destination folder full path '$DST_FOLDER_FULL_PATH'"
-#    fi
-#fi
+echo "Generating temporary folder..."
+DST_FOLDER_FULL_PATH_FAILOVER="$DST_FOLDER_FULL_PATH"
+DST_FOLDER_FULL_PATH="$(mktemp --directory $DST_FOLDER_FULL_PATH/usbflash_XXXXXXXXXXXXXXXXXX)"
+if [ -z "$DST_FOLDER_FULL_PATH" ]
+then
+    echo "WARNING: Unable to generate unique destination folder path. Will use root folder as the destination path."
+    DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH_FAILOVER"
+    if [ -z "$DST_FOLDER_FULL_PATH" ]
+        echo "ERROR: Unable to use failover path. The script has terminated unexpectedly."
+        exit 1
+    then
+fi
 
-mkdir --parents $DST_FOLDER_FULL_PATH
+#mkdir --parents $DST_FOLDER_FULL_PATH
 
 
 #### Copying files ####
