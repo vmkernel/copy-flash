@@ -174,26 +174,30 @@ fi
 # TODO: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts
 # it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 # it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
-echo "Extracting current date and time..."
-DATE=$(date +"%F_%H-%M-%S")
-if [ -z "$DATE" ]
-then
-    echo "WARNING: Unable to generate nested folder with current date and time. Will use root folder as the destination"
-else
-    DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH/$DATE"
-    if [ -z "$DST_FOLDER_FULL_PATH" ]
-    then
-        echo "ERROR: Unable to generate destination folder path. The script has terminated unexpectedly"
-        exit 1
-    else
-        echo "Using destination folder full path '$DST_FOLDER_FULL_PATH'"
-    fi
-fi
+# TODO: use original file creation date
+
+#echo "Extracting current date and time..."
+#DATE=$(date +"%F_%H-%M-%S")
+#if [ -z "$DATE" ]
+#then
+#    echo "WARNING: Unable to generate nested folder with current date and time. Will use root folder as the destination"
+#else
+#    DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH/$DATE"
+#    if [ -z "$DST_FOLDER_FULL_PATH" ]
+#    then
+#        echo "ERROR: Unable to generate destination folder path. The script has terminated unexpectedly"
+#        exit 1
+#    else
+#        echo "Using destination folder full path '$DST_FOLDER_FULL_PATH'"
+#    fi
+#fi
 
 mkdir --parents $DST_FOLDER_FULL_PATH
 
 
 #### Copying files ####
+# TODO: use partial file for ability to resume copy after an interruption.
+# TODO: use some kind of hash algorithms and auto rename to avoid collisions and rewrites.
 echo "Starting file copy process from '$SRC_DEVICE_MOUNT_POINT' to '$DST_FOLDER_FULL_PATH'..."
 #rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
 EXIT_CODE=$?
