@@ -91,13 +91,14 @@ fi
 #### Checking if the mount points are free ####
 echo "Checking mount points..."
 
-# Unmounting the source mount point if it's already mounted
+## SOURCE
+# Unmounting the source MOUNT POINT if it's already mounted
 MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
-    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is free"
+    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is not mounted"
 else
-    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is already in use, unmounting..."
+    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
     umount $SRC_DEVICE_MOUNT_POINT
     MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
     if [ -z "$MOUNT_STATUS" ]
@@ -109,13 +110,33 @@ else
     fi
 fi
 
-# Unmounting the source mount point if it's already mounted
+# Unmounting the source DEVICE if it's already mounted
+MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_NAME)
+if [ -z "$MOUNT_STATUS" ]
+then
+    echo "The device '$SRC_DEVICE_NAME' is not mounted"
+else
+    echo "The device '$SRC_DEVICE_NAME' is already mounted, unmounting..."
+    umount $SRC_DEVICE_NAME
+    MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_NAME)
+    if [ -z "$MOUNT_STATUS" ]
+    then
+        echo "The device '$SRC_DEVICE_NAME' has been successfully unmounted"
+    else
+        echo "ERROR: Unable to unmount device '$SRC_DEVICE_NAME'. The script has terminated unexpectedly"
+        exit 1
+    fi
+fi
+
+
+# DESTINATION
+# Unmounting the source MOUNT POINT if it's already mounted
 MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
-    echo "The mount point '$DST_DEVICE_MOUNT_POINT' is free"
+    echo "The mount point '$DST_DEVICE_MOUNT_POINT' is not mounted"
 else
-    echo "The mount point '$DST_DEVICE_MOUNT_POINT' is already in use, unmounting..."
+    echo "The mount point '$DST_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
     umount $DST_DEVICE_MOUNT_POINT
     MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
     if [ -z "$MOUNT_STATUS" ]
@@ -123,6 +144,24 @@ else
         echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been successfully unmounted"
     else
         echo "ERROR: Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The script has terminated unexpectedly"
+        exit 1
+    fi
+fi
+
+# Unmounting the source MOUNT POINT if it's already mounted
+MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_NAME)
+if [ -z "$MOUNT_STATUS" ]
+then
+    echo "The device '$DST_DEVICE_NAME' is not mounted"
+else
+    echo "The device '$DST_DEVICE_NAME' is already mounted, unmounting..."
+    umount $DST_DEVICE_NAME
+    MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_NAME)
+    if [ -z "$MOUNT_STATUS" ]
+    then
+        echo "The device '$DST_DEVICE_NAME' has been successfully unmounted"
+    else
+        echo "ERROR: Unable to unmount device '$DST_DEVICE_NAME'. The script has terminated unexpectedly"
         exit 1
     fi
 fi
