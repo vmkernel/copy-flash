@@ -10,8 +10,8 @@
 DST_DEVICE_NAME='sda1' # Source device name
 SRC_DEVICE_NAME='sdb1' # Destination device name
 
-SRC_DEVICE_MOUNT_POINT='/mnt/flash-dance/source'        # Source device's mount point
-DST_DEVICE_MOUNT_POINT='/mnt/flash-dance/destination'   # Destination device's mount point
+SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'        # Source device's mount point
+DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'   # Destination device's mount point
 
 DST_FOLDER_ROOT='Incoming' # Destination folder's relative path (from destination device's root)
 #### End of settings section
