@@ -4,7 +4,10 @@
 # This scripts starts nested script and redirects its output to a log file
 
 # INFO
-# udev runs scripts in root (/) folder
+# * udev runs scripts in root (/) folder
+# * Using current date time as a part of a log file name is not a good idea, 
+#   'cause RPi might not be able to connect to a NTP server to update current date/time,
+#   but it still helps to determine which of the files newer
 
 #### Settings ####
 # TODO: learn the script to work with relative path
