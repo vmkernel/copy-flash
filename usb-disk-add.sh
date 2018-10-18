@@ -196,7 +196,7 @@ fi
 # TODO: use partial file for ability to resume copy after an interruption.
 # TODO: use some kind of hash algorithms and auto rename to avoid collisions and rewrites.
 echo "Starting file copy process from '$SRC_DEVICE_MOUNT_POINT' to '$DST_FOLDER_FULL_PATH'..."
-#rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
 EXIT_CODE=$?
 echo "Copy process has finished with exit code is $EXIT_CODE"
 
