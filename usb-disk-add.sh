@@ -14,6 +14,7 @@ SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'        # Source device's moun
 DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'   # Destination device's mount point
 
 DST_FOLDER_ROOT='Incoming' # Destination folder's relative path (from destination device's root)
+DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX' # Directory name pattern for mktemp command
 #### End of settings section
 
 
@@ -27,6 +28,7 @@ echo "Source device's mount point is '$SRC_DEVICE_MOUNT_POINT'"
 echo "Destination device name is '$DST_DEVICE_NAME'"
 echo "Destination device's mount moint is '$DST_DEVICE_MOUNT_POINT'"
 echo "Destination folder's relative path is '$DST_FOLDER_ROOT'"
+echo "Destination folder's name pattern '$DST_FOLDER_NAME_PATTERN'"
 
 
 #### Checking settings ####
@@ -215,18 +217,23 @@ fi
 # it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 # TODO: use original file creation date
 
-echo "Generating temporary folder..."
-DST_FOLDER_FULL_PATH_FAILOVER="$DST_FOLDER_FULL_PATH"
-# TODO: move the temporary folder name pattern to settings section
-DST_FOLDER_FULL_PATH="$(mktemp --directory $DST_FOLDER_FULL_PATH/usbflash_XXXXXXXXXXXXXXXXXX)"
-if [ -z "$DST_FOLDER_FULL_PATH" ]
+# Checking of destination folder name pattern is specified
+if [ -z "$DST_FOLDER_NAME_PATTERN" ]
 then
-    echo "WARNING: Unable to generate unique destination folder path. Will use root folder as the destination path."
-    DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH_FAILOVER"
+    echo "WARNING: Destination folder name pattern is not set. Will use root folder as the destination path."
+else
+    echo "Generating temporary folder..."
+    DST_FOLDER_FULL_PATH_FAILOVER="$DST_FOLDER_FULL_PATH"
+    DST_FOLDER_FULL_PATH="$(mktemp --directory $DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME_PATTERN)"
     if [ -z "$DST_FOLDER_FULL_PATH" ]
     then
-        echo "ERROR: Unable to use failover path. The script has terminated unexpectedly."
-        exit 1
+        echo "WARNING: Unable to generate unique destination folder path. Will use root folder as the destination path."
+        DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH_FAILOVER"
+        if [ -z "$DST_FOLDER_FULL_PATH" ]
+        then
+            echo "ERROR: Unable to use failover path. The script has terminated unexpectedly."
+            exit 1
+        fi
     fi
 fi
 
