@@ -217,15 +217,17 @@ fi
 
 echo "Generating temporary folder..."
 DST_FOLDER_FULL_PATH_FAILOVER="$DST_FOLDER_FULL_PATH"
+# TODO: move the temporary folder name pattern to settings section
 DST_FOLDER_FULL_PATH="$(mktemp --directory $DST_FOLDER_FULL_PATH/usbflash_XXXXXXXXXXXXXXXXXX)"
 if [ -z "$DST_FOLDER_FULL_PATH" ]
 then
     echo "WARNING: Unable to generate unique destination folder path. Will use root folder as the destination path."
     DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH_FAILOVER"
     if [ -z "$DST_FOLDER_FULL_PATH" ]
+    then
         echo "ERROR: Unable to use failover path. The script has terminated unexpectedly."
         exit 1
-    then
+    fi
 fi
 
 #mkdir --parents $DST_FOLDER_FULL_PATH
