@@ -114,16 +114,16 @@ fi
 MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_NAME)
 if [ -z "$MOUNT_STATUS" ]
 then
-    echo "The device '$SRC_DEVICE_NAME' is not mounted"
+    echo "The device '/dev/$SRC_DEVICE_NAME' is not mounted"
 else
-    echo "The device '$SRC_DEVICE_NAME' is already mounted, unmounting..."
-    umount $SRC_DEVICE_NAME
+    echo "The device '/dev/$SRC_DEVICE_NAME' is already mounted, unmounting..."
+    umount /dev/$SRC_DEVICE_NAME
     MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_NAME)
     if [ -z "$MOUNT_STATUS" ]
     then
-        echo "The device '$SRC_DEVICE_NAME' has been successfully unmounted"
+        echo "The device '/dev/$SRC_DEVICE_NAME' has been successfully unmounted"
     else
-        echo "ERROR: Unable to unmount device '$SRC_DEVICE_NAME'. The script has terminated unexpectedly"
+        echo "ERROR: Unable to unmount device '/dev/$SRC_DEVICE_NAME'. The script has terminated unexpectedly"
         exit 1
     fi
 fi
@@ -148,20 +148,20 @@ else
     fi
 fi
 
-# Unmounting the source MOUNT POINT if it's already mounted
+# Unmounting the source DEVICE if it's already mounted
 MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_NAME)
 if [ -z "$MOUNT_STATUS" ]
 then
-    echo "The device '$DST_DEVICE_NAME' is not mounted"
+    echo "The device '/dev/$DST_DEVICE_NAME' is not mounted"
 else
-    echo "The device '$DST_DEVICE_NAME' is already mounted, unmounting..."
-    umount $DST_DEVICE_NAME
+    echo "The device '/dev/$DST_DEVICE_NAME' is already mounted, unmounting..."
+    umount /dev/$DST_DEVICE_NAME
     MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_NAME)
     if [ -z "$MOUNT_STATUS" ]
     then
-        echo "The device '$DST_DEVICE_NAME' has been successfully unmounted"
+        echo "The device '/dev/$DST_DEVICE_NAME' has been successfully unmounted"
     else
-        echo "ERROR: Unable to unmount device '$DST_DEVICE_NAME'. The script has terminated unexpectedly"
+        echo "ERROR: Unable to unmount device '/dev/$DST_DEVICE_NAME'. The script has terminated unexpectedly"
         exit 1
     fi
 fi
