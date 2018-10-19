@@ -1,10 +1,18 @@
 #!/bin/bash
 
-# INFO
+### INFO ###
 # udev runs scripts in root (/) folder
 
-# TODO: detect devices automatically: the first attached device sdX should be the destination device, the second sd(X+1) should be the source device.
-# TODO: find a way to notify user when copy process has started and has finished.
+### TODO ###
+# * General: detect devices automatically: the first attached device sdX should be the destination device, the second sd(X+1) should be the source device.
+# * General: find a way to notify user when copy process has started and has finished.
+# * rsync: store everything in one directory, use partial file to resume copy after an interruption.
+# * rsync: use some kind of hash algorithms and auto rename to avoid collisions and overwrites.
+# * General: use original file creation date as a destination folder name in order to sort data by its real creation date
+# * General: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts.
+# it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
+# it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
+
 
 #### SETTINGS ####
 DST_DEVICE_NAME='sda1' # Destination device name
@@ -212,11 +220,6 @@ else
     echo "Using destination folder root '$DST_FOLDER_FULL_PATH'"
 fi
 
-# TODO: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts
-# it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
-# it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
-# TODO: use original file creation date
-
 # Checking of destination folder name pattern is specified
 if [ -z "$DST_FOLDER_NAME_PATTERN" ]
 then
@@ -237,12 +240,8 @@ else
     fi
 fi
 
-#mkdir --parents $DST_FOLDER_FULL_PATH
-
 
 #### Copying files ####
-# TODO: use partial file for ability to resume copy after an interruption.
-# TODO: use some kind of hash algorithms and auto rename to avoid collisions and rewrites.
 echo "Starting file copy process from '$SRC_DEVICE_MOUNT_POINT' to '$DST_FOLDER_FULL_PATH'..."
 rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
 EXIT_CODE=$?
@@ -260,6 +259,7 @@ else
     echo "ERROR: Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The device will halt in order to keep file system on the destination consistent"
 #    halt
 fi
+
 
 #### Cleaning up ####
 # Unmounting the source devices from the mount point
