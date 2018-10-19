@@ -10,8 +10,7 @@
 #   but it still helps to determine which of the files newer
 
 #### Settings ####
-# TODO: learn the script to work with relative path
-SCRIPT_PATH='/usr/local/etc/udev/scripts/usb-disk-add.sh' # Nested script's path
+SCRIPT_PATH='./usb-disk-add.sh' # Nested script's path
 LOG_FILE_FOLDER='/var/log/usb-disk-copy' # Path to a parent folder of a log files
 LOG_FILE_BASE_NAME='debug' # Log file base name
 #### End of settings ####
