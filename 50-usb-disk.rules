@@ -1,1 +1,1 @@
-ACTION=="add", KERNEL=="sd*", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", RUN+="/bin/bash -c '/usr/local/etc/udev/scripts/usb-disk-add-wrapper.sh > /var/log/udev/usb-disk-add-wrapper.log'"
+ACTION=="add", KERNEL=="sd*", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", RUN+="/bin/bash -c 'cd /usr/local/etc/udev/scripts/ && ./usb-disk-add-wrapper.sh > /var/log/udev/usb-disk-add-wrapper.log'"
