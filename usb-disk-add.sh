@@ -7,8 +7,8 @@
 # TODO: find a way to notify user when copy process has started and has finished.
 
 #### SETTINGS ####
-DST_DEVICE_NAME='sda1' # Source device name
-SRC_DEVICE_NAME='sdb1' # Destination device name
+DST_DEVICE_NAME='sda1' # Destination device name
+SRC_DEVICE_NAME='sdb1' # Source device name
 
 SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'        # Source device's mount point
 DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'   # Destination device's mount point
