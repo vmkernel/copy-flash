@@ -1,7 +1,6 @@
 [Unit]
 Description=Copy all files from one USB disk drive to another
 BindTo=%i.device
-After=$i.device
 
 [Service]
 Type=oneshot
