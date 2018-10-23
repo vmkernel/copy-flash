@@ -1,8 +1,7 @@
 [Unit]
-Description=Copy all files from one USB disk drive to another
-BindTo=%i.device
+Description=USB disk copy service
+BindTo=dev-%i.device
 
 [Service]
 Type=oneshot
-TimeoutStartSec=30
 ExecStart=/bin/bash -c 'cd /usr/local/etc/udev/scripts/ && ./usb-disk-copy-wrapper.sh > /var/log/usb-disk-copy/wrapper.log'
