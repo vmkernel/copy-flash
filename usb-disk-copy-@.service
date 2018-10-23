@@ -1,0 +1,7 @@
+[Unit]
+Description=USB disk copy service
+BindTo=dev-%i.device
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'cd /usr/local/etc/udev/scripts/ && ./usb-disk-copy-wrapper.sh > /var/log/usb-disk-copy/wrapper.log'
