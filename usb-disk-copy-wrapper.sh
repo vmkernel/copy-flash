@@ -23,7 +23,7 @@ echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
 echo ""
 
 #### Checking settings ####
-echo "Checking settings..."
+echo "CHECKING SETTINGS..."
 # Nested script's path
 if [ -z "$SCRIPT_PATH" ]
 then
@@ -48,12 +48,11 @@ then
     echo "*** WARNING *** Log files base name is not set. Will use default name."
     $LOG_FILE_BASE_NAME='flash-dance'
 fi
-echo "Settings are checked."
 
 
 #### Generating log file name ####
 echo ""
-echo "Generating log file name..."
+echo "GENERATING LOG FILE NAME..."
 DATE=$(date +"%F_%H-%M-%S")
 if [ -z "$DATE" ]
 then
@@ -66,7 +65,7 @@ echo "Using log file: $LOG_FILE"
 
 
 echo ""
-echo "NESTED SCRIPT '$SCRIPT_PATH' IS STARTING..."
+echo "STARTING NESTED SCRIPT '$SCRIPT_PATH'..."
 "$SCRIPT_PATH" | tee "$LOG_FILE"
 
 echo ""
