@@ -19,7 +19,7 @@ LOG_FILE_BASE_NAME='debug' # Log file base name
 #### Main part ####
 SCRIPT_NAME=`basename "$0"`
 echo ""
-echo "The script has started ($SCRIPT_NAME)"
+echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
 echo ""
 
 #### Checking settings ####
@@ -52,6 +52,7 @@ echo "Settings are checked."
 
 
 #### Generating log file name ####
+echo ""
 echo "Generating log file name..."
 DATE=$(date +"%F_%H-%M-%S")
 if [ -z "$DATE" ]
@@ -69,6 +70,6 @@ echo "NESTED SCRIPT '$SCRIPT_PATH' IS STARTING..."
 "$SCRIPT_PATH" | tee "$LOG_FILE"
 
 echo ""
-echo "NESTED SCRIPT '$SCRIPT_NAME' HAS FINISHED."
+echo "THE SCRIPT '$SCRIPT_NAME' HAS RUN TO ITS END."
 
 exit 0
