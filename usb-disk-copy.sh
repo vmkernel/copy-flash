@@ -9,6 +9,7 @@
 # * rsync: store everything in one directory, use partial file to resume copy after an interruption.
 # * rsync: use some kind of hash algorithms and auto rename to avoid collisions and overwrites.
 # * General: use original file creation date as a destination folder name in order to sort data by its real creation date
+# * General: if I'm using 'current' date and time in log file names why I shouldn't use the same name for destination folder, just to match a specific folder with a specific log file.
 # * General: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts.
 # it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 # it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
