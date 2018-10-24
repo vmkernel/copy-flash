@@ -4,13 +4,14 @@
 # udev runs scripts in root (/) folder
 
 ### TODO ###
-# * General: detect devices automatically: the first attached device sdX should be the destination device, the second sd(X+1) should be the source device.
-# * General: find a way to notify user when copy process has started and has finished.
-# * rsync: store everything in one directory, use partial file to resume copy after an interruption.
-# * rsync: use some kind of hash algorithms and auto rename to avoid collisions and overwrites.
-# * General: use original file creation date as a destination folder name in order to sort data by its real creation date
-# * General: if I'm using 'current' date and time in log file names why I shouldn't use the same name for destination folder, just to match a specific folder with a specific log file.
-# * General: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts.
+# * General: detect devices automatically: the first attached device sdX should be the destination device, the second sd(X+1) should be the source device (Issue #4).
+# * General: find a way to notify user when copy process has started and has finished (Issue #5).
+# * rsync: store everything in one directory, use partial file to resume copy after an interruption (Issue #6).
+# * rsync: use some kind of hash algorithms to avoid collisions and overwrites (Issue #7).
+# * rsync: auto rename different files with the same names to avoid skipping (Issue #8).
+# * General: use original file creation date as a destination folder name in order to sort data by its real creation date (Issue #9).
+# * General: if I'm using 'current' date and time in log file names why I shouldn't use the same name for destination folder, just to match a specific folder with a specific log file (Issue #9).
+# * General: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts (Issue #9).
 # it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 # it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 
