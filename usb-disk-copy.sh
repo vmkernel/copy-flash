@@ -65,12 +65,22 @@ fi
 #### Checking arguments
 echo ""
 echo "CHECKING ARGUMENTS..."
+IS_BIND_TO_DEVICE=false # no device binding by default
 if [ -z "$1" ]
 then
-    echo "No device name is specified in command line for the script."
+    echo "No device name is specified in the command line for the script. Will do a full scan."
 else
-    echo "Got the device name from command line: $1"
+    echo "Got the device name from the command line: $1"
+    IS_DEVICE_PRESENT=$(ls -la /dev/ | grep -i $1)
+    if [ -z "$IS_DEVICE_PRESENT" ]
+    then
+        echo "*** WARNING **** Unable to find the device from the command line '/dev/$1'. Will do a full scan."
+    else
+        echo "The specified device is attached to the system. Will try to bing to it."
+        $IS_BIND_TO_DEVICE=true
+    if
 fi
+echo "$IS_BIND_TO_DEVICE"
 #### End of checking arguments
 
 
