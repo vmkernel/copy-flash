@@ -33,26 +33,12 @@ SCRIPT_NAME=`basename "$0"`
 echo ""
 echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
 echo "CHECKING SETTING..."
-echo "Source device name: $SRC_DEVICE_NAME"
 echo "Source device mount point: $SRC_DEVICE_MOUNT_POINT"
-echo "Destination device name: $DST_DEVICE_NAME"
 echo "Destination device mount moint: $DST_DEVICE_MOUNT_POINT"
 echo "Destination folder relative path: $DST_FOLDER_ROOT"
 echo "Destination folder name pattern: $DST_FOLDER_NAME_PATTERN"
 
 #### Checking settings ####
-if [ -z "$DST_DEVICE_NAME" ]
-then
-    echo "*** ERROR *** Destination device name is not set. Check settings! The script has terminated unexpectedly."
-    exit 1
-fi
-
-if [ -z "$SRC_DEVICE_NAME" ]
-then
-    echo "*** ERROR *** Source device name is not set. Check settings! The script has terminated unexpectedly."
-    exit 1
-fi
-
 if [ -z "$DST_DEVICE_MOUNT_POINT" ]
 then
     echo "*** ERROR *** Destination mount point is not set. Check settings! The script has terminated unexpectedly."
@@ -79,23 +65,54 @@ fi
 echo ""
 echo "SEARCHING FOR DEVICES..."
 
-# Searching for a destination device
-DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $DST_DEVICE_NAME | awk '{print $9}')
-if [ -z "$DST_DEVICE_ID" ]
+# Enumerating all attached SCSI disks using name pattern /dev/sd*1
+ATTACHED_SCSI_DISKS=( $(ls -la /dev/ | grep -Pi "sd(\w+)1" | awk '{print $10}' | sort) )
+
+if [ ${#ATTACHED_SCSI_DISKS[*]} -le 0 ] # Checking for an empty array
 then
-    echo "*** WARNING *** Destination device not found, nowhere to copy to. The script has terminated prematurely."
+    # Got an empty array, 'cuse no device was found
+    echo "*** WARNING *** No devices found. The script has terminated prematurely."
     exit 0
 else
-    echo "Destination device found with name '$DST_DEVICE_NAME' and id '$DST_DEVICE_ID'"
+    echo "Found ${#ATTACHED_SCSI_DISKS[*]} device(s): ${ATTACHED_SCSI_DISKS[*]}"
 fi
 
-# Searching for a source device
-SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $SRC_DEVICE_NAME | awk '{print $9}')
-if [ -z "$SRC_DEVICE_ID" ]
+if [ ${#ATTACHED_SCSI_DISKS[*]} -lt 2 ] # Checking if we have at least two disks
 then
-    echo "*** WARNING *** Source device not found, nowhere to copy from. The script has terminated prematurely."
+    echo "*** WARNING *** Not enough devices. Need at least two devices to start a copying process. The script has terminated prematurely."
     exit 0
-else
+else 
+    # Attached two (2) or more disks
+
+    # Binding to the destination disk
+    DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
+    if [ -z "$DST_DEVICE_NAME" ]
+    then
+        echo "*** ERROR *** Unable to get destination device name. The script has terminated unexpectedly."
+        exit 1
+    fi
+
+    DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $DST_DEVICE_NAME | awk '{print $9}')
+    if [ -z "$DST_DEVICE_ID" ]
+    then
+        echo "*** WARNING *** Unable to find destination device ID."
+    fi
+    echo "Destination device found with name '$DST_DEVICE_NAME' and id '$DST_DEVICE_ID'"
+
+
+    # Binding to the source disk
+    SRC_DEVICE_NAME=${ATTACHED_SCSI_DISKS[1]}
+    if [ -z "$SRC_DEVICE_NAME" ]
+    then
+        echo "*** ERROR *** Unable to get source device name. The script has terminated unexpectedly."
+        exit 1
+    fi
+
+    SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $SRC_DEVICE_NAME | awk '{print $9}')
+    if [ -z "$SRC_DEVICE_ID" ]
+    then
+        echo "*** WARNING *** Unable to find source device ID."
+    fi
     echo "Source device found with name '$SRC_DEVICE_NAME' and id '$SRC_DEVICE_ID'"
 fi
 
