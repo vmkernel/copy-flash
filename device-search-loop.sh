@@ -1,14 +1,37 @@
 #!/bin/bash
 
-ATTACHED_SCSI_DISKS=( $(ls -la /dev/sd?1 2> /dev/null | awk '{print $10}' | cut -f3 -d"/" | sort) )
-if [ ${#ATTACHED_SCSI_DISKS[*]} -ge 2 ]
+# Discovering attached SCSI disks
+echo "Discovering attached SCSI disks..."
+ATTACHED_SCSI_DISKS=( $(ls -la /dev/ | grep -Pi "sd(\w+)1" | awk '{print $10}' | sort) )
+
+if [ ${#ATTACHED_SCSI_DISKS[*]} -le 0 ]
 then
-    # Everything is ok, using firs two devices as a destination (the first one) and a source (the second one)
-    DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
-    SRC_DEVICE_NAME=${ATTACHED_SCSI_DISKS[1]}
-    echo "Found the destination device: /dev/$DST_DEVICE_NAME"
-    echo "Found the source device: /dev/$SRC_DEVICE_NAME"
+    echo "*** WARNING *** No devices not found. The script has terminated prematurely."
+    #exit 0
 else
-    echo "Devices aren't found"
-    # Something went wrong. Exit here
+    echo "Found ${#ATTACHED_SCSI_DISKS[*]} device(s): ${ATTACHED_SCSI_DISKS[*]}"
+fi
+
+if [ ${#ATTACHED_SCSI_DISKS[*]} -lt 2 ]
+then
+    echo "*** WARNING *** Not enough devices to start copying. The script has terminated prematurely."
+    #exit 0
+else # Attached disks count greather than 2
+    DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
+    if [ -z "$DST_DEVICE_NAME" ]
+    then
+        echo "*** ERROR *** Destination device name is not set. Check settings! The script has terminated unexpectedly."
+        exit 1
+    else
+        echo "Found the destination device: /dev/$DST_DEVICE_NAME"
+    fi
+
+    SRC_DEVICE_NAME=${ATTACHED_SCSI_DISKS[1]}
+    if [ -z "$SRC_DEVICE_NAME" ]
+    then
+        echo "*** ERROR *** Source device name is not set. Check settings! The script has terminated unexpectedly."
+        exit 1
+    else
+        echo "Found the source device: /dev/$SRC_DEVICE_NAME"  
+    fi
 fi
