@@ -63,6 +63,7 @@ fi
 
 
 #### Checking arguments
+echo ""
 echo "CHECKING ARGUMENTS..."
 if [ -z "$1" ]
 then
