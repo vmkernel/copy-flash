@@ -28,7 +28,7 @@ DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX' # Directory name pattern f
 #### End of settings section
 
 
-#### Main part ####
+#------------------------------------------------------------------------------
 SCRIPT_NAME=`basename "$0"`
 echo ""
 echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
@@ -59,6 +59,18 @@ if [ -z "$DST_FOLDER_ROOT" ]
 then
     echo "*** ERROR *** Destination folder is not set. Assuming root folder."
 fi
+#### End of checking settings ####
+
+
+#### Checking arguments
+echo "CHECKING ARGUMENTS..."
+if [ -z "$1" ]
+then
+    echo "No device name is specified in command line for the script."
+else
+    echo "Got the device name from command line: $1"
+fi
+#### End of checking arguments
 
 
 #### Devices discovery ####
@@ -115,6 +127,7 @@ else
     fi
     echo "Source device found with name '$SRC_DEVICE_NAME' and id '$SRC_DEVICE_ID'"
 fi
+#### End of devices discovery ####
 
 
 #### Checking if the mount points are free ####
@@ -158,7 +171,6 @@ else
     fi
 fi
 
-
 # DESTINATION
 # Unmounting the source MOUNT POINT if it's already mounted
 MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
@@ -195,6 +207,7 @@ else
         exit 1
     fi
 fi
+#### End of checking if the mount points are free ####
 
 
 #### Mounting devices ####
@@ -221,6 +234,7 @@ then
 else
     echo "The mount point '$DST_DEVICE_MOUNT_POINT' successfully mounted."
 fi
+#### End of mounting devices ####
 
 
 #### Generating destination folder path ####
@@ -259,6 +273,7 @@ else
         fi
     fi
 fi
+#### End of generating destination folder path ####
 
 
 #### Copying files ####
@@ -269,6 +284,7 @@ echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
 rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
 EXIT_CODE=$?
 echo "Copy process has finished. Exit code: $EXIT_CODE"
+#### End of copying files ####
 
 
 #### Cleaning up ####
@@ -295,6 +311,7 @@ then
 else
     echo "*** ERROR *** Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'."
 fi
+#### End of cleaning up ####
 
 echo ""
 echo "THE SCRIPT HAS RUN TO ITS END ($SCRIPT_NAME)"
