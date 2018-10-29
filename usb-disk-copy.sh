@@ -122,7 +122,7 @@ else
             DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
             SRC_DEVICE_NAME=$1
             echo "Auto-detect has found the destination device: $DST_DEVICE_NAME"
-            echo "Auto-detect has found the source device: $DRC_DEVICE_NAME"
+            echo "Auto-detect has found the source device: $SRC_DEVICE_NAME"
         fi
     else # Performing sequential detection
         DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
