@@ -76,8 +76,8 @@ else
     then
         echo "*** WARNING **** Unable to find the device from the command line '/dev/$1'. Will do a full scan."
     else
-        echo "The specified device '/dev/$1' is attached to the system. Will try to bing to it."
-        $IS_BIND_TO_DEVICE=1
+        echo "The specified device '/dev/$1' is attached to the system. Will try to bind to it."
+        IS_BIND_TO_DEVICE=1
     fi
 fi
 echo "$IS_BIND_TO_DEVICE"
@@ -106,6 +106,19 @@ then
     exit 0
 else 
     # Attached two (2) or more disks
+
+    # TODO
+    # * Try to bind to the specified device
+    # * Use for-loop and check if the first found device mathces with the current device.
+    # * If it's NOT, assume the first device as the destination device and the current device as a source.
+    # * If it's a match, then... well... I guess, do nothing...
+
+    if [ $IS_BIND_TO_DEVICE -eq 1 ]
+    then
+        #
+    else
+        #
+    fi
 
     # Binding to the destination disk
     DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
