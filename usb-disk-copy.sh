@@ -80,7 +80,6 @@ else
         IS_BIND_TO_DEVICE=1
     fi
 fi
-echo "$IS_BIND_TO_DEVICE"
 #### End of checking arguments
 
 
