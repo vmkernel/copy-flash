@@ -100,56 +100,70 @@ else
     echo "Found ${#ATTACHED_SCSI_DISKS[*]} device(s): ${ATTACHED_SCSI_DISKS[*]}"
 fi
 
-if [ ${#ATTACHED_SCSI_DISKS[*]} -lt 2 ] # Checking if we have at least two disks
+# Checking if we have at least two disks
+if [ ${#ATTACHED_SCSI_DISKS[*]} -lt 2 ] 
 then
+    # Exit if ther's less than two disks attached.
     echo "*** WARNING *** Not enough devices. Need at least two devices to start a copying process. The script has terminated prematurely."
     exit 0
 else 
     # Attached two (2) or more disks
-
-    # TODO
-    # * Try to bind to the specified device
-    # * Use for-loop and check if the first found device mathces with the current device.
-    # * If it's NOT, assume the first device as the destination device and the current device as a source.
-    # * If it's a match, then... well... I guess, do nothing...
-
+    DST_DEVICE_NAME=""
+    SRC_DEVICE_NAME=""
     if [ $IS_BIND_TO_DEVICE -eq 1 ]
     then
-        #
-    else
-        #
+        # Trying to bind to the specified device
+        if [ "${ATTACHED_SCSI_DISKS[0]}" = "$1" ] # Comparing the attached device with the first device found in system
+        then
+            # If it's a match, then do nothing, assuming this is the destination device and it's just attached
+            echo "*** WARNING *** Auto-detect is assuming the devices as the first device in the system and will use it as a destination device as soon as a source device appears. Waiting for a source device. The script has terminated prematurely."
+            exit 0
+        else
+            # If it's NOT a match, assuming the first device as the destination device and the current device as a source.
+            DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
+            SRC_DEVICE_NAME=$1
+            echo "Auto-detect has found the destination device: $DST_DEVICE_NAME"
+            echo "Auto-detect has found the source device: $DRC_DEVICE_NAME"
+        fi
+    else # Performing sequential detection
+        DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
+        SRC_DEVICE_NAME=${ATTACHED_SCSI_DISKS[1]}
+        echo "Sequential detect has found the destination device: $DST_DEVICE_NAME"
+        echo "Sequential detect has found the source device: $DRC_DEVICE_NAME"
     fi
 
-    # Binding to the destination disk
-    DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
+    # Checking if the destination device name is set correctly
     if [ -z "$DST_DEVICE_NAME" ]
     then
         echo "*** ERROR *** Unable to get destination device name. The script has terminated unexpectedly."
         exit 1
     fi
-
-    DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $DST_DEVICE_NAME | awk '{print $9}')
-    if [ -z "$DST_DEVICE_ID" ]
-    then
-        echo "*** WARNING *** Unable to find destination device ID."
-    fi
-    echo "Destination device found with name '$DST_DEVICE_NAME' and id '$DST_DEVICE_ID'"
-
-
-    # Binding to the source disk
-    SRC_DEVICE_NAME=${ATTACHED_SCSI_DISKS[1]}
+    # Checking if the source device name is set correctly
     if [ -z "$SRC_DEVICE_NAME" ]
     then
         echo "*** ERROR *** Unable to get source device name. The script has terminated unexpectedly."
         exit 1
     fi
 
+    # Getting the destination device id
+    DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $DST_DEVICE_NAME | awk '{print $9}')
+    if [ -z "$DST_DEVICE_ID" ]
+    then
+        echo "Destination device found with name '$DST_DEVICE_NAME'"
+        echo "*** WARNING *** Unable to find destination device ID."
+    else
+        echo "Destination device found with name '$DST_DEVICE_NAME' and id '$DST_DEVICE_ID'"
+    fi
+
+    # Getting the source device id
     SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $SRC_DEVICE_NAME | awk '{print $9}')
     if [ -z "$SRC_DEVICE_ID" ]
     then
+        echo "Source device found with name '$SRC_DEVICE_NAME'"
         echo "*** WARNING *** Unable to find source device ID."
+    else
+        echo "Source device found with name '$SRC_DEVICE_NAME' and id '$SRC_DEVICE_ID'"
     fi
-    echo "Source device found with name '$SRC_DEVICE_NAME' and id '$SRC_DEVICE_ID'"
 fi
 #### End of devices discovery ####
 
