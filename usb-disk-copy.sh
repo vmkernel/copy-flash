@@ -13,13 +13,14 @@
 # it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 # it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 
-
 #### SETTINGS ####
 DST_DEVICE_NAME='sda1' # Destination device name
 SRC_DEVICE_NAME='sdb1' # Source device name
 
 SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'        # Source device's mount point
 DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'   # Destination device's mount point
+
+# TODO: Implement mode switch between all-in-one folder mode and separate folders mode
 
 DST_FOLDER_ROOT='Incoming' # Destination folder's relative path (from destination device's root)
 DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX' # Directory name pattern for mktemp command
