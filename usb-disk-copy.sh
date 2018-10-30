@@ -318,6 +318,8 @@ echo "STARTING FILE COPY PROCESS..."
 echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
 echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
 rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+# Alternative (new) way:
+# rsync --recursive --human-readable --progress --append-verify /media/sdcard/ /media/hdd/Incoming/
 EXIT_CODE=$?
 echo "Copy process has finished. Exit code: $EXIT_CODE"
 #### End of copying files ####
