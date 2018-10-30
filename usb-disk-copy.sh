@@ -128,7 +128,7 @@ else
         DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
         SRC_DEVICE_NAME=${ATTACHED_SCSI_DISKS[1]}
         echo "Sequential detect has found the destination device: $DST_DEVICE_NAME"
-        echo "Sequential detect has found the source device: $DRC_DEVICE_NAME"
+        echo "Sequential detect has found the source device: $SRC_DEVICE_NAME"
     fi
 
     # Checking if the destination device name is set correctly
