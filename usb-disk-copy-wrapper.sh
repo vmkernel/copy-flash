@@ -80,7 +80,12 @@ echo "Using log file: $LOG_FILE"
 #### Starting nested script ####
 echo ""
 echo "STARTING NESTED SCRIPT '$SCRIPT_PATH'..."
-"$SCRIPT_PATH" $1 | tee "$LOG_FILE"
+if [ -z "$1" ]
+then
+    "$SCRIPT_PATH" | tee "$LOG_FILE"
+else
+    "$SCRIPT_PATH" $1 | tee "$LOG_FILE"
+fi
 
 echo ""
 echo "THE SCRIPT '$SCRIPT_NAME' HAS RUN TO ITS END."
