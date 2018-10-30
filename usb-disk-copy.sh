@@ -6,7 +6,6 @@
 ### TODO ###
 # * General: find a way to notify user when copy process has started and has finished (Issue #5).
 # * rsync: store everything in one directory, use partial file to resume copy after an interruption (Issue #6).
-# * rsync: use some kind of hash algorithms to avoid collisions and overwrites (Issue #7).
 # * rsync: auto rename different files with the same names to avoid skipping (Issue #8).
 # * General: use original file creation date as a destination folder name in order to sort data by its real creation date (Issue #9).
 # * General: if I'm using 'current' date and time in log file names why I shouldn't use the same name for destination folder, just to match a specific folder with a specific log file (Issue #9).
