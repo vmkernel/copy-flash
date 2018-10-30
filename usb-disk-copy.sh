@@ -4,7 +4,6 @@
 # udev runs scripts in root (/) folder
 
 ### TODO ###
-# * General: detect devices automatically: the first attached device sdX should be the destination device, the second sd(X+1) should be the source device (Issue #4).
 # * General: find a way to notify user when copy process has started and has finished (Issue #5).
 # * rsync: store everything in one directory, use partial file to resume copy after an interruption (Issue #6).
 # * rsync: use some kind of hash algorithms to avoid collisions and overwrites (Issue #7).
