@@ -15,8 +15,7 @@ LOG_FILE_FOLDER='/var/log/usb-disk-copy' # Path to a parent folder of a log file
 LOG_FILE_BASE_NAME='debug' # Log file base name
 #### End of settings ####
 
-
-#### Main part ####
+#------------------------------------------------------------------------------
 SCRIPT_NAME=`basename "$0"`
 echo ""
 echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
@@ -48,6 +47,19 @@ then
     echo "*** WARNING *** Log files base name is not set. Will use default name."
     $LOG_FILE_BASE_NAME='flash-dance'
 fi
+#### End of checking settings ####
+
+
+#### Checking arguments
+echo ""
+echo "CHECKING ARGUMENTS..."
+if [ -z "$1" ]
+then
+    echo "No device name is specified in command line for the script."
+else
+    echo "Got the device name from command line: $1"
+fi
+#### End of checking arguments
 
 
 #### Generating log file name ####
@@ -62,13 +74,21 @@ else
     LOG_FILE="$LOG_FILE_FOLDER/$LOG_FILE_BASE_NAME-$DATE.log"
 fi
 echo "Using log file: $LOG_FILE"
+#### End of generating log file name ####
 
 
+#### Starting nested script ####
 echo ""
 echo "STARTING NESTED SCRIPT '$SCRIPT_PATH'..."
-"$SCRIPT_PATH" | tee "$LOG_FILE"
+if [ -z "$1" ]
+then
+    "$SCRIPT_PATH" | tee "$LOG_FILE"
+else
+    "$SCRIPT_PATH" $1 | tee "$LOG_FILE"
+fi
 
 echo ""
 echo "THE SCRIPT '$SCRIPT_NAME' HAS RUN TO ITS END."
+#### End of starting nested script ####
 
 exit 0
