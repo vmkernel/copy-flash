@@ -20,7 +20,7 @@ SRC_DEVICE_NAME='sdb1' # Source device name
 SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'        # Source device's mount point
 DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'   # Destination device's mount point
 
-# TODO: Implement mode switch between all-in-one folder mode and separate folders mode
+IS_ALL_IN_ONE_FOLDER=1 # Switch between all-in-one folder mode (value = 1) and separate folders mode (value = 0)
 
 DST_FOLDER_ROOT='Incoming' # Destination folder's relative path (from destination device's root)
 DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX' # Directory name pattern for mktemp command
@@ -32,12 +32,29 @@ SCRIPT_NAME=`basename "$0"`
 echo ""
 echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
 echo "CHECKING SETTING..."
+echo "Operations mode: $IS_ALL_IN_ONE_FOLDER"
 echo "Source device mount point: $SRC_DEVICE_MOUNT_POINT"
 echo "Destination device mount moint: $DST_DEVICE_MOUNT_POINT"
 echo "Destination folder relative path: $DST_FOLDER_ROOT"
 echo "Destination folder name pattern: $DST_FOLDER_NAME_PATTERN"
 
 #### Checking settings ####
+if [[ (-z "$IS_ALL_IN_ONE_FOLDER") || ($IS_ALL_IN_ONE_FOLDER -lt 0) || ($IS_ALL_IN_ONE_FOLDER -gt 1) ]]
+then
+    echo "*** WARNING *** Operations mode is not set or is not in acceptable range. Failing back to default mode."
+    IS_ALL_IN_ONE_FOLDER=0
+fi
+
+if [ $IS_ALL_IN_ONE_FOLDER -eq 0 ]
+then
+    echo "Operating mode: separate folders for each source device (0)"
+fi
+
+if [ $IS_ALL_IN_ONE_FOLDER -eq 1 ]
+then
+    echo "Operating mode: all-in-one target directory (1)"
+fi
+
 if [ -z "$DST_DEVICE_MOUNT_POINT" ]
 then
     echo "*** ERROR *** Destination mount point is not set. Check settings! The script has terminated unexpectedly."
@@ -290,22 +307,25 @@ else
     echo "Using destination folder root '$DST_FOLDER_FULL_PATH'."
 fi
 
-# Checking of destination folder name pattern is specified
-if [ -z "$DST_FOLDER_NAME_PATTERN" ]
+if [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Old-way, separate folder mode
 then
-    echo "*** WARNING *** Destination folder name pattern is not set. Will use root folder as the destination path."
-else
-    echo "Generating temporary folder..."
-    DST_FOLDER_FULL_PATH_FAILOVER="$DST_FOLDER_FULL_PATH"
-    DST_FOLDER_FULL_PATH="$(mktemp --directory $DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME_PATTERN)"
-    if [ -z "$DST_FOLDER_FULL_PATH" ]
+    # Checking of destination folder name pattern is specified
+    if [ -z "$DST_FOLDER_NAME_PATTERN" ]
     then
-        echo "*** WARNING *** Unable to generate unique destination folder path. Will use root folder as the destination path."
-        DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH_FAILOVER"
+        echo "*** WARNING *** Destination folder name pattern is not set. Will use root folder as the destination path."
+    else
+        echo "Generating temporary folder..."
+        DST_FOLDER_FULL_PATH_FAILOVER="$DST_FOLDER_FULL_PATH"
+        DST_FOLDER_FULL_PATH="$(mktemp --directory $DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME_PATTERN)"
         if [ -z "$DST_FOLDER_FULL_PATH" ]
         then
-            echo "*** ERROR *** Unable to use failover path. The script has terminated unexpectedly."
-            exit 1
+            echo "*** WARNING *** Unable to generate unique destination folder path. Will use root folder as the destination path."
+            DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH_FAILOVER"
+            if [ -z "$DST_FOLDER_FULL_PATH" ]
+            then
+                echo "*** ERROR *** Unable to use failover path. The script has terminated unexpectedly."
+                exit 1
+            fi
         fi
     fi
 fi
@@ -317,9 +337,14 @@ echo ""
 echo "STARTING FILE COPY PROCESS..."
 echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
 echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
-rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
-# Alternative (new) way:
-# rsync --recursive --human-readable --progress --append-verify /media/sdcard/ /media/hdd/Incoming/
+
+if [ $IS_ALL_IN_ONE_FOLDER -eq 1 ] # New-way, all-in-one folder mode
+then
+    rsync --recursive --human-readable --progress --append-verify $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+elif [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Old-way, separate folder mode
+then
+    rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+fi
 EXIT_CODE=$?
 echo "Copy process has finished. Exit code: $EXIT_CODE"
 #### End of copying files ####
