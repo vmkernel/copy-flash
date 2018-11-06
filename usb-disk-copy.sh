@@ -12,18 +12,21 @@
 # * General: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts (Issue #9).
 # it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 # it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
+# * General: add disk label information (Issue #13).
+# * Fix multiple device ID output (Issue #14)
 
 #### SETTINGS ####
 DST_DEVICE_NAME='sda1' # Destination device name
 SRC_DEVICE_NAME='sdb1' # Source device name
 
-SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'        # Source device's mount point
-DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'   # Destination device's mount point
+# TODO: Check source and destiantion path and format it that way, so it doesn't have trailing slashes (Issue #15).
+SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'        # Source device's mount point (without trailing slash)
+DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'   # Destination device's mount point (without trailing slash)
 
 IS_ALL_IN_ONE_FOLDER=1 # Switch between all-in-one folder mode (value = 1) and separate folders mode (value = 0)
 
 DST_FOLDER_ROOT='Incoming' # Destination folder's relative path (from destination device's root)
-DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX' # Directory name pattern for mktemp command
+DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX' # Directory name pattern for mktemp command (not required if All-in-one mode is enabled)
 #### End of settings section
 
 
@@ -32,7 +35,7 @@ SCRIPT_NAME=`basename "$0"`
 echo ""
 echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
 echo "CHECKING SETTING..."
-echo "Operations mode: $IS_ALL_IN_ONE_FOLDER"
+echo "Operations mode raw value: $IS_ALL_IN_ONE_FOLDER"
 echo "Source device mount point: $SRC_DEVICE_MOUNT_POINT"
 echo "Destination device mount moint: $DST_DEVICE_MOUNT_POINT"
 echo "Destination folder relative path: $DST_FOLDER_ROOT"
@@ -47,12 +50,12 @@ fi
 
 if [ $IS_ALL_IN_ONE_FOLDER -eq 0 ]
 then
-    echo "Operating mode: separate folders for each source device (0)"
+    echo "Operations mode: separate folders for each source device."
 fi
 
 if [ $IS_ALL_IN_ONE_FOLDER -eq 1 ]
 then
-    echo "Operating mode: all-in-one target directory (1)"
+    echo "Operations mode: all-in-one target directory."
 fi
 
 if [ -z "$DST_DEVICE_MOUNT_POINT" ]
@@ -137,14 +140,14 @@ else
             # If it's NOT a match, assuming the first device as the destination device and the current device as a source.
             DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
             SRC_DEVICE_NAME=$1
-            echo "Auto-detect has found the destination device: $DST_DEVICE_NAME"
-            echo "Auto-detect has found the source device: $SRC_DEVICE_NAME"
+            echo "Destination device name (auto-detect): $DST_DEVICE_NAME"
+            echo "Source device name (auto-detect): $SRC_DEVICE_NAME"
         fi
     else # Performing sequential detection
         DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
         SRC_DEVICE_NAME=${ATTACHED_SCSI_DISKS[1]}
-        echo "Sequential detect has found the destination device: $DST_DEVICE_NAME"
-        echo "Sequential detect has found the source device: $SRC_DEVICE_NAME"
+        echo "Destination device name (sequential detect): $DST_DEVICE_NAME"
+        echo "Source device name (sequential detect): $SRC_DEVICE_NAME"
     fi
 
     # Checking if the destination device name is set correctly
@@ -164,20 +167,18 @@ else
     DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $DST_DEVICE_NAME | awk '{print $9}')
     if [ -z "$DST_DEVICE_ID" ]
     then
-        echo "Destination device found with name '$DST_DEVICE_NAME'"
         echo "*** WARNING *** Unable to find destination device ID."
     else
-        echo "Destination device found with name '$DST_DEVICE_NAME' and id '$DST_DEVICE_ID'"
+        echo "Destination device id: $DST_DEVICE_ID"
     fi
 
     # Getting the source device id
     SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $SRC_DEVICE_NAME | awk '{print $9}')
     if [ -z "$SRC_DEVICE_ID" ]
     then
-        echo "Source device found with name '$SRC_DEVICE_NAME'"
         echo "*** WARNING *** Unable to find source device ID."
     else
-        echo "Source device found with name '$SRC_DEVICE_NAME' and id '$SRC_DEVICE_ID'"
+        echo "Source device id: $SRC_DEVICE_ID"
     fi
 fi
 #### End of devices discovery ####
@@ -265,6 +266,7 @@ fi
 
 #### Mounting devices ####
 # Mounting the devices to the mount points
+echo ""
 echo "MOUNTING DEVICES..."
 echo "Mounting source device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT'..."
 mount /dev/$SRC_DEVICE_NAME $SRC_DEVICE_MOUNT_POINT
@@ -291,6 +293,7 @@ fi
 
 
 #### Generating destination folder path ####
+echo ""
 echo "PREPARING DESTINATION FOLDER..."
 if [ -z "$DST_FOLDER_ROOT" ]
 then
@@ -338,12 +341,13 @@ echo "STARTING FILE COPY PROCESS..."
 echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
 echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
 
+# TODO: Check source path and format it that way, so it does have trailing slash (Issue #15).
 if [ $IS_ALL_IN_ONE_FOLDER -eq 1 ] # New-way, all-in-one folder mode
 then
-    rsync --recursive --human-readable --progress --append-verify $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+    rsync --recursive --human-readable --progress --times --append-verify $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
 elif [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Old-way, separate folder mode
 then
-    rsync --recursive --human-readable --progress $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+    rsync --recursive --human-readable --progress --times "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
 fi
 EXIT_CODE=$?
 echo "Copy process has finished. Exit code: $EXIT_CODE"
