@@ -16,9 +16,6 @@
 # * Fix multiple device ID output (Issue #14)
 
 #### SETTINGS ####
-DST_DEVICE_NAME='sda1' # Destination device name
-SRC_DEVICE_NAME='sdb1' # Source device name
-
 # TODO: Check source and destiantion path and format it that way, so it doesn't have trailing slashes (Issue #15).
 SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'        # Source device's mount point (without trailing slash)
 DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'   # Destination device's mount point (without trailing slash)
