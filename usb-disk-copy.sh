@@ -341,7 +341,7 @@ echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
 # TODO: Check source path and format it that way, so it does have trailing slash (Issue #15).
 if [ $IS_ALL_IN_ONE_FOLDER -eq 1 ] # New-way, all-in-one folder mode
 then
-    rsync --recursive --human-readable --progress --times --append-verify $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+    rsync --recursive --human-readable --progress --times --append-verify "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
 elif [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Old-way, separate folder mode
 then
     rsync --recursive --human-readable --progress --times "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
