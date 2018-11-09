@@ -1,29 +1,50 @@
 #!/bin/bash
 
-### INFO ###
-# udev runs scripts in root (/) folder
-
 ### TODO ###
 # * General: find a way to notify user when copy process has started and has finished (Issue #5).
-# * rsync: store everything in one directory, use partial file to resume copy after an interruption (Issue #6).
 # * rsync: auto rename different files with the same names to avoid skipping (Issue #8).
 # * General: use original file creation date as a destination folder name in order to sort data by its real creation date (Issue #9).
 # * General: if I'm using 'current' date and time in log file names why I shouldn't use the same name for destination folder, just to match a specific folder with a specific log file (Issue #9).
 # * General: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts (Issue #9).
-# it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
-# it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
+#            it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
+#            it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 # * General: add disk label information (Issue #13).
 # * Fix multiple device ID output (Issue #14)
 
 #### SETTINGS ####
 # TODO: Check source and destiantion path and format it that way, so it doesn't have trailing slashes (Issue #15).
-SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'        # Source device's mount point (without trailing slash)
-DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'   # Destination device's mount point (without trailing slash)
 
-IS_ALL_IN_ONE_FOLDER=1 # Switch between all-in-one folder mode (value = 1) and separate folders mode (value = 0)
+# Source device mount point (without a trailing slash!)
+# Specifies an EMPTY folder in a RPi file system to which a source volume will be mounted
+# Examples: /media/usb0, /mnt/source
+SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'
 
-DST_FOLDER_ROOT='Incoming' # Destination folder's relative path (from destination device's root)
-DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX' # Directory name pattern for mktemp command (not required if All-in-one mode is enabled)
+# Destination device mount point (without a trailing slash)
+# Specifies an EMPTY folder in a RPi file system to which a destination volume will be mounted
+# Examples: /media/usb1, /mnt/destination
+DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'
+
+# Operations mode switch
+# Supported values:
+# * 1 = all-in-one folder 
+#       USE WITH CAUTION!
+#       Places all files from all source volumes to a single destination directory
+#       (no name collision resolution for now)
+# * 0 = separate folders
+#       Creates a separate folder for each source volume EVERY TIME the script starts
+#       Resuming is NOT supported
+IS_ALL_IN_ONE_FOLDER=1 
+
+# Destination folder relative path
+# Specifies the path from destination volume's root folder to a destination folder
+# If the parameter is not specified, files or separate folders (depending on IS_ALL_IN_ONE_FOLDER switch) will be placed in the root folder of a destination volume
+DST_FOLDER_ROOT='Incoming'
+
+# Separate folder name pattern for separate folders operations mode
+# Specifies a pattern for a separate folder name that will be created for a source volume EVERY TIME the script starts
+# Ignored if All-in-one mode is enabled.
+# TODO: actually, I can get rid of IS_ALL_IN_ONE_FOLDER variable and rewrite the script to assume All-in-one mode if this variable is not specified
+DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX'
 #### End of settings section
 
 
