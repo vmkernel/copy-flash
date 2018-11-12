@@ -21,6 +21,14 @@ echo ""
 echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
 echo ""
 
+#### Checking kill-switch
+if [[ ! -z "$KILLSWITCH_USB_DISK_COPY" ]]
+then
+    echo "*** WARNING *** The script has detected that the killswitch is active. Exiting."
+    exit 1
+fi
+#### End of checking kill-switch
+
 #### Checking settings ####
 echo "CHECKING SETTINGS..."
 # Nested script's path
