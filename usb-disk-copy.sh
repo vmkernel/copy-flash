@@ -9,11 +9,10 @@
 #            it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 #            it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 # * General: add disk label information (Issue #13).
-# * Fix multiple device ID output (Issue #14)
+# * BUG: Fix multiple device ID output (Issue #14)
+# * General: Check source and destiantion path and format it that way, so it doesn't have trailing slashes (Issue #15).
 
 #### SETTINGS ####
-# TODO: Check source and destiantion path and format it that way, so it doesn't have trailing slashes (Issue #15).
-
 # Source device mount point (without a trailing slash!)
 # Specifies an EMPTY folder in a RPi file system to which a source volume will be mounted
 # Examples: /media/usb0, /mnt/source
@@ -24,26 +23,26 @@ SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'
 # Examples: /media/usb1, /mnt/destination
 DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'
 
-# Operations mode switch
-# Supported values:
-# * 1 = all-in-one folder 
-#       USE WITH CAUTION!
-#       Places all files from all source volumes to a single destination directory
-#       (no name collision resolution for now)
-# * 0 = separate folders
-#       Creates a separate folder for each source volume EVERY TIME the script starts
-#       Resuming is NOT supported
-IS_ALL_IN_ONE_FOLDER=1 
-
 # Destination folder relative path
 # Specifies the path from destination volume's root folder to a destination folder
 # If the parameter is not specified, files or separate folders (depending on IS_ALL_IN_ONE_FOLDER switch) will be placed in the root folder of a destination volume
 DST_FOLDER_ROOT='Incoming'
 
-# Separate folder name pattern for separate folders operations mode
-# Specifies a pattern for a separate folder name that will be created for a source volume EVERY TIME the script starts
-# Ignored if All-in-one mode is enabled.
-# TODO: actually, I can get rid of IS_ALL_IN_ONE_FOLDER variable and rewrite the script to assume All-in-one mode if this variable is not specified
+# Separate folder name pattern and operations mode switch
+# ALL-IN-ONE folder mode
+#   USE WITH CAUTION!
+#   If the parameter is NOT set, the script works in ALL-IN-ONE folder mode.
+#   Places all files from all source volumes to a single destination directory.
+#   No name collision resolution is implemented for now.
+#
+# SEPARATE folders mode
+#   If the parameter IS set, specifies a pattern for a separate folder name that will be created for a source volume EVERY TIME the script starts.
+#   Creates a separate folder for each source volume EVERY TIME the script starts.
+#   Resuming is NOT supported.
+#
+#   Example: 
+#       usbflash_XXXXXXXXXXXXXXXXXX
+#       All the X-es will be replaced by mktmp command to random digits and letters.
 DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX'
 #### End of settings section
 
@@ -53,29 +52,12 @@ SCRIPT_NAME=`basename "$0"`
 echo ""
 echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
 echo "CHECKING SETTING..."
-echo "Operations mode raw value: $IS_ALL_IN_ONE_FOLDER"
 echo "Source device mount point: $SRC_DEVICE_MOUNT_POINT"
 echo "Destination device mount moint: $DST_DEVICE_MOUNT_POINT"
 echo "Destination folder relative path: $DST_FOLDER_ROOT"
 echo "Destination folder name pattern: $DST_FOLDER_NAME_PATTERN"
 
 #### Checking settings ####
-if [[ (-z "$IS_ALL_IN_ONE_FOLDER") || ($IS_ALL_IN_ONE_FOLDER -lt 0) || ($IS_ALL_IN_ONE_FOLDER -gt 1) ]]
-then
-    echo "*** WARNING *** Operations mode is not set or is not in acceptable range. Failing back to default mode."
-    IS_ALL_IN_ONE_FOLDER=0
-fi
-
-if [ $IS_ALL_IN_ONE_FOLDER -eq 0 ]
-then
-    echo "Operations mode: separate folders for each source device."
-fi
-
-if [ $IS_ALL_IN_ONE_FOLDER -eq 1 ]
-then
-    echo "Operations mode: all-in-one target directory."
-fi
-
 if [ -z "$DST_DEVICE_MOUNT_POINT" ]
 then
     echo "*** ERROR *** Destination mount point is not set. Check settings! The script has terminated unexpectedly."
@@ -94,7 +76,16 @@ fi
 
 if [ -z "$DST_FOLDER_ROOT" ]
 then
-    echo "*** ERROR *** Destination folder is not set. Assuming root folder."
+    echo "*** WARNING *** Destination folder is not set. Assuming root folder."
+fi
+
+IS_ALL_IN_ONE_FOLDER=1 # Operations mode switch, by default assuming all-in-one directory mode
+if [ -z "$DST_FOLDER_NAME_PATTERN" ]
+then
+    echo "Operations mode: all-in-one folder (separate folder name pattern is NOT set)."
+else
+    IS_ALL_IN_ONE_FOLDER=0
+    echo "Operations mode: separate folder (separate folder name pattern is set)."
 fi
 #### End of checking settings ####
 
@@ -328,25 +319,23 @@ else
     echo "Using destination folder root '$DST_FOLDER_FULL_PATH'."
 fi
 
-if [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Old-way, separate folder mode
+
+# Checking of destination folder name pattern is specified
+if [[ ! -z "$DST_FOLDER_NAME_PATTERN" ]]
 then
-    # Checking of destination folder name pattern is specified
-    if [ -z "$DST_FOLDER_NAME_PATTERN" ]
+    # Old-way, separate folder mode
+    echo "Generating temporary folder..."
+    DST_FOLDER_FULL_PATH_FAILOVER="$DST_FOLDER_FULL_PATH"
+    DST_FOLDER_FULL_PATH="$(mktemp --directory $DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME_PATTERN)"
+    if [ -z "$DST_FOLDER_FULL_PATH" ]
     then
-        echo "*** WARNING *** Destination folder name pattern is not set. Will use root folder as the destination path."
-    else
-        echo "Generating temporary folder..."
-        DST_FOLDER_FULL_PATH_FAILOVER="$DST_FOLDER_FULL_PATH"
-        DST_FOLDER_FULL_PATH="$(mktemp --directory $DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME_PATTERN)"
+        echo "*** WARNING *** Unable to generate unique destination folder path. Will fail-over to all-in-one mode."
+        IS_ALL_IN_ONE_FOLDER=1
+        DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH_FAILOVER"
         if [ -z "$DST_FOLDER_FULL_PATH" ]
         then
-            echo "*** WARNING *** Unable to generate unique destination folder path. Will use root folder as the destination path."
-            DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH_FAILOVER"
-            if [ -z "$DST_FOLDER_FULL_PATH" ]
-            then
-                echo "*** ERROR *** Unable to use failover path. The script has terminated unexpectedly."
-                exit 1
-            fi
+            echo "*** ERROR *** Unable to use failover path. The script has terminated unexpectedly."
+            exit 1
         fi
     fi
 fi
