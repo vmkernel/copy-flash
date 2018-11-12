@@ -19,17 +19,22 @@ LOG_FILE_BASE_NAME='debug' # Log file base name
 SCRIPT_NAME=`basename "$0"`
 echo ""
 echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
-echo ""
 
 #### Checking kill-switch
+echo ""
+echo "CHECKING THE KILLSWITCH..."
+echo "Kill-switch variable is set to: $KILLSWITCH_USB_DISK_COPY"
 if [[ ! -z "$KILLSWITCH_USB_DISK_COPY" ]]
 then
-    echo "*** WARNING *** The script has detected that the killswitch is active. Exiting."
+    echo "*** WARNING *** The kill-switch is enabled. Exiting."
     exit 1
+else
+    echo "The kill-switch is disabled."
 fi
 #### End of checking kill-switch
 
 #### Checking settings ####
+echo ""
 echo "CHECKING SETTINGS..."
 # Nested script's path
 if [ -z "$SCRIPT_PATH" ]
