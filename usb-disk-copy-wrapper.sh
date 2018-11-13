@@ -10,18 +10,42 @@
 #   but it still helps to determine which of the files newer
 
 #### Settings ####
-SCRIPT_PATH='./usb-disk-copy.sh' # Nested script's path
-LOG_FILE_FOLDER='/var/log/usb-disk-copy' # Path to a parent folder of a log files
-LOG_FILE_BASE_NAME='debug' # Log file base name
+# Nested script path
+SCRIPT_PATH='./usb-disk-copy.sh' 
+
+# Path to a parent folder of a log files
+LOG_FILE_FOLDER='/var/log/usb-disk-copy'
+
+# Log file base name
+LOG_FILE_BASE_NAME='debug'
+
+# Path to a kill-switch file
+# If the file exists, script will exit without executing the nested script
+# Useful for debugging, to temporary disable auto-triggering by the udev rule
+KILLSWITCH_PATH='/tmp/KILLSWITCH_USB_DISK_COPY'
 #### End of settings ####
 
 #------------------------------------------------------------------------------
 SCRIPT_NAME=`basename "$0"`
 echo ""
 echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
+
+#### Checking kill-switch
 echo ""
+echo "CHECKING THE KILLSWITCH..."
+
+KILLSWITCH=$(ls -la "$KILLSWITCH_PATH" 2>/dev/null)
+if [ -z "$KILLSWITCH" ]
+then
+    echo "The kill-switch is disabled."
+else
+    echo "*** WARNING *** The kill-switch is enabled. Exiting."
+    exit 1
+fi
+#### End of checking kill-switch
 
 #### Checking settings ####
+echo ""
 echo "CHECKING SETTINGS..."
 # Nested script's path
 if [ -z "$SCRIPT_PATH" ]

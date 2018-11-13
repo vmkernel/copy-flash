@@ -43,7 +43,7 @@ DST_FOLDER_ROOT='Incoming'
 #   Example: 
 #       usbflash_XXXXXXXXXXXXXXXXXX
 #       All the X-es will be replaced by mktmp command to random digits and letters.
-DST_FOLDER_NAME_PATTERN='usbflash_XXXXXXXXXXXXXXXXXX'
+DST_FOLDER_NAME_PATTERN=''
 #### End of settings section
 
 
