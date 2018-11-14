@@ -25,9 +25,9 @@ Plug'n'play :)
 ## Installation
 
 ### Create required folders
-1. Create a folder for the scripts (e.g.: **/usr/local/etc/udev/scripts**):
+1. Create a folder for the scripts (e.g.: **/opt/usb-disk-copy**):
 ```bash
-sudo mkdir --parents /usr/local/etc/udev/scripts
+sudo mkdir --parents /opt/usb-disk-copy
 ```
 2. Create a folder for log files (e.g.: **/var/log/usb-disk-copy**):
 ```bash
@@ -35,13 +35,13 @@ sudo mkdir --parents /var/log/usb-disk-copy
 ```
 
 ### Place the scripts into the working folder
-1. Copy files **usb-disk-copy.sh** and **usb-disk-copy-wrapper.sh** to the previously created folder **/usr/local/etc/udev/scripts**:
+1. Copy files **usb-disk-copy.sh** and **usb-disk-copy-wrapper.sh** to the previously created folder **/opt/usb-disk-copy**:
 ```bash
-sudo cp ./usb-disk-copy.sh ./usb-disk-copy-wrapper.sh /usr/local/etc/udev/scripts/
+sudo cp ./usb-disk-copy.sh ./usb-disk-copy-wrapper.sh /opt/usb-disk-copy
 ```
 2. Grant **execute** permission on both files:
 ```bash
-sudo chmod u=rwx,go=r /usr/local/etc/udev/scripts/usb-disk-copy.sh /usr/local/etc/udev/scripts/usb-disk-copy-wrapper.sh
+sudo chmod u=rwx,go=r /opt/usb-disk-copy/usb-disk-copy.sh /opt/usb-disk-copy/usb-disk-copy-wrapper.sh
 ```
 
 ### Setup a service that will do the job
@@ -59,10 +59,10 @@ BindTo=dev-%i.device
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c 'cd /usr/local/etc/udev/scripts/ && ./usb-disk-copy-wrapper.sh > /var/log/usb-disk-copy/wrapper.log'
+ExecStart=/bin/bash -c 'cd /opt/usb-disk-copy/ && ./usb-disk-copy-wrapper.sh > /var/log/usb-disk-copy/wrapper.log'
 ```
 **NOTE**
-**/usr/local/etc/udev/scripts/** must point to the same directory where you have copied the scripts.
+**/opt/usb-disk-copy/** must point to the same directory where you have copied the scripts.
 **/var/log/usb-disk-copy/** must point to an existing directory.
 3. Reload systemd daemon
 ```bash
