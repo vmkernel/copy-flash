@@ -9,8 +9,6 @@
 #            it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 #            it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 # * General: add disk label information (Issue #13).
-# * BUG: Fix multiple device ID output (Issue #14)
-# * General: Check source and destiantion path and format it that way, so it doesn't have trailing slashes (Issue #15).
 
 #### SETTINGS ####
 # Source device mount point (without a trailing slash!)
@@ -63,6 +61,13 @@ then
     echo "*** ERROR *** Destination mount point is not set. Check settings! The script has terminated unexpectedly."
     exit 1
 else
+    # Removing trailing slashes if any
+    DST_DEVICE_MOUNT_POINT=${DST_DEVICE_MOUNT_POINT%/}
+    if [ -z "$DST_DEVICE_MOUNT_POINT" ]
+    then
+        echo "*** ERROR *** Failed to remove trailing slash from destination mount point path. The script has terminated unexpectedly."
+        exit 1
+    fi
     mkdir --parents $DST_DEVICE_MOUNT_POINT
 fi
 
@@ -71,6 +76,13 @@ then
     echo "*** ERROR *** Source mount point is not set. Check settings! The script has terminated unexpectedly."
     exit 1
 else
+    # Removing trailing slashes if any
+    SRC_DEVICE_MOUNT_POINT=${SRC_DEVICE_MOUNT_POINT%/}
+    if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
+    then
+        echo "*** ERROR *** Failed to remove trailing slash from source mount point path. The script has terminated unexpectedly."
+        exit 1
+    fi
     mkdir --parents $SRC_DEVICE_MOUNT_POINT
 fi
 
@@ -99,7 +111,7 @@ then
     echo "No device name is specified in the command line for the script. Will do a full scan."
 else
     echo "Got the device name from the command line: $1"
-    IS_DEVICE_PRESENT=$(ls -la /dev/ | grep -i $1)
+    IS_DEVICE_PRESENT=$(ls -la /dev/ | grep --max-count 1 --ignore-case $1)
     if [ -z "$IS_DEVICE_PRESENT" ]
     then
         echo "*** WARNING **** Unable to find the device from the command line '/dev/$1'. Will do a full scan."
@@ -116,7 +128,7 @@ echo ""
 echo "SEARCHING FOR DEVICES..."
 
 # Enumerating all attached SCSI disks using name pattern /dev/sd*1
-ATTACHED_SCSI_DISKS=( $(ls -la /dev/ | grep -Pi "sd(\w+)1" | awk '{print $10}' | sort) )
+ATTACHED_SCSI_DISKS=( $(ls -la /dev/ | grep --ignore-case --perl-regexp "sd(\w+)1" | awk '{print $10}' | sort) )
 
 if [ ${#ATTACHED_SCSI_DISKS[*]} -le 0 ] # Checking for an empty array
 then
@@ -173,7 +185,7 @@ else
     fi
 
     # Getting the destination device id
-    DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $DST_DEVICE_NAME | awk '{print $9}')
+    DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep --max-count 1 --ignore-case $DST_DEVICE_NAME | awk '{print $9}')
     if [ -z "$DST_DEVICE_ID" ]
     then
         echo "*** WARNING *** Unable to find destination device ID."
@@ -182,7 +194,7 @@ else
     fi
 
     # Getting the source device id
-    SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep -i $SRC_DEVICE_NAME | awk '{print $9}')
+    SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep --max-count 1 --ignore-case $SRC_DEVICE_NAME | awk '{print $9}')
     if [ -z "$SRC_DEVICE_ID" ]
     then
         echo "*** WARNING *** Unable to find source device ID."
@@ -199,14 +211,14 @@ echo "CHECKING MOUNT POINTS..."
 
 ## SOURCE
 # Unmounting the source MOUNT POINT if it's already mounted
-MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
+MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is not mounted."
 else
     echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
     umount $SRC_DEVICE_MOUNT_POINT
-    MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
+    MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
     if [ -z "$MOUNT_STATUS" ]
     then
         echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been successfully unmounted."
@@ -217,14 +229,14 @@ else
 fi
 
 # Unmounting the source DEVICE if it's already mounted
-MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_NAME)
+MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_NAME)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "The device '/dev/$SRC_DEVICE_NAME' is not mounted."
 else
     echo "The device '/dev/$SRC_DEVICE_NAME' is already mounted, unmounting..."
     umount /dev/$SRC_DEVICE_NAME
-    MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_NAME)
+    MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_NAME)
     if [ -z "$MOUNT_STATUS" ]
     then
         echo "The device '/dev/$SRC_DEVICE_NAME' has been successfully unmounted."
@@ -236,14 +248,14 @@ fi
 
 # DESTINATION
 # Unmounting the source MOUNT POINT if it's already mounted
-MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
+MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "The mount point '$DST_DEVICE_MOUNT_POINT' is not mounted."
 else
     echo "The mount point '$DST_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
     umount $DST_DEVICE_MOUNT_POINT
-    MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
+    MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
     if [ -z "$MOUNT_STATUS" ]
     then
         echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been successfully unmounted."
@@ -254,14 +266,14 @@ else
 fi
 
 # Unmounting the source DEVICE if it's already mounted
-MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_NAME)
+MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_NAME)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "The device '/dev/$DST_DEVICE_NAME' is not mounted."
 else
     echo "The device '/dev/$DST_DEVICE_NAME' is already mounted, unmounting..."
     umount /dev/$DST_DEVICE_NAME
-    MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_NAME)
+    MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_NAME)
     if [ -z "$MOUNT_STATUS" ]
     then
         echo "The device '/dev/$DST_DEVICE_NAME' has been successfully unmounted."
@@ -279,7 +291,7 @@ echo ""
 echo "MOUNTING DEVICES..."
 echo "Mounting source device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT'..."
 mount /dev/$SRC_DEVICE_NAME $SRC_DEVICE_MOUNT_POINT
-MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
+MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "*** ERROR *** Unable to mount device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT. The script has terminated unexpectedly."
@@ -290,7 +302,7 @@ fi
 
 echo "Mounting destination device '$DST_DEVICE_NAME' to mount point '$DST_DEVICE_MOUNT_POINT'..."
 mount /dev/$DST_DEVICE_NAME $DST_DEVICE_MOUNT_POINT
-MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
+MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "*** ERROR *** Unable to mount device '$DST_DEVICE_NAME ' to mount point '$DST_DEVICE_MOUNT_POINT. The script has terminated unexpectedly."
@@ -348,7 +360,7 @@ echo "STARTING FILE COPY PROCESS..."
 echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
 echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
 
-# TODO: Check source path and format it that way, so it does have trailing slash (Issue #15).
+# Trailing slashes is added to skip parent directory creation on destination
 if [ $IS_ALL_IN_ONE_FOLDER -eq 1 ] # New-way, all-in-one folder mode
 then
     rsync --recursive --human-readable --progress --times --append-verify "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
@@ -366,7 +378,7 @@ echo ""
 echo "UNMOUNTING DEVICES..."
 # Unmounting the destination devices from the mount point
 umount -f $DST_DEVICE_MOUNT_POINT
-MOUNT_STATUS=$(cat /proc/mounts | grep -i $DST_DEVICE_MOUNT_POINT)
+MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been sucessfully unmounted."
@@ -378,7 +390,7 @@ fi
 #### Cleaning up ####
 # Unmounting the source devices from the mount point
 umount $SRC_DEVICE_MOUNT_POINT
-MOUNT_STATUS=$(cat /proc/mounts | grep -i $SRC_DEVICE_MOUNT_POINT)
+MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
     echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been sucessfully unmounted."
