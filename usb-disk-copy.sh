@@ -9,8 +9,6 @@
 #            it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 #            it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 # * General: add disk label information (Issue #13).
-# * BUG: Fix multiple device ID output (Issue #14)
-# * General: Check source and destiantion path and format it that way, so it doesn't have trailing slashes (Issue #15).
 
 #### SETTINGS ####
 # Source device mount point (without a trailing slash!)
@@ -63,6 +61,13 @@ then
     echo "*** ERROR *** Destination mount point is not set. Check settings! The script has terminated unexpectedly."
     exit 1
 else
+    # Removing trailing slashes if any
+    DST_DEVICE_MOUNT_POINT=${DST_DEVICE_MOUNT_POINT%/}
+    if [ -z "$DST_DEVICE_MOUNT_POINT" ]
+    then
+        echo "*** ERROR *** Failed to remove trailing slash from destination mount point path. The script has terminated unexpectedly."
+        exit 1
+    fi
     mkdir --parents $DST_DEVICE_MOUNT_POINT
 fi
 
@@ -71,6 +76,13 @@ then
     echo "*** ERROR *** Source mount point is not set. Check settings! The script has terminated unexpectedly."
     exit 1
 else
+    # Removing trailing slashes if any
+    SRC_DEVICE_MOUNT_POINT=${SRC_DEVICE_MOUNT_POINT%/}
+    if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
+    then
+        echo "*** ERROR *** Failed to remove trailing slash from source mount point path. The script has terminated unexpectedly."
+        exit 1
+    fi
     mkdir --parents $SRC_DEVICE_MOUNT_POINT
 fi
 
@@ -348,7 +360,7 @@ echo "STARTING FILE COPY PROCESS..."
 echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
 echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
 
-# TODO: Check source path and format it that way, so it does have trailing slash (Issue #15).
+# Trailing slashes is added to skip parent directory creation on destination
 if [ $IS_ALL_IN_ONE_FOLDER -eq 1 ] # New-way, all-in-one folder mode
 then
     rsync --recursive --human-readable --progress --times --append-verify "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
