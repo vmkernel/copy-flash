@@ -2,6 +2,7 @@
 # Example: check_files_collision <source_directory> <destination_directory> <file_name>
 function check_files_collision () {
 
+    # TODO: check settings!
     SRC_FOLDER_PATH=$1
     DST_FOLDER_PATH=$2
     SRC_FILE_NAME=$3
