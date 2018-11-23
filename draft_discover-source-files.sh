@@ -1,17 +1,5 @@
-# Here's some magic to convers standard ls -R output from:
-#     $ ls -R /home/pi
-#     /home/pi:
-#     scripts
-#
-#     /home/pi/scripts:
-#     rpi-usb-disk-copy
-#
-#     /home/pi/scripts/rpi-usb-disk-copy:
-#     50-usb-disk.rules  debug-disable.sh  debug-enable.sh  install.sh  LICENSE  README.md  usb-disk-copy-@.service  usb-disk-copy.sh  usb-disk-copy-wrapper.sh
-#
-# to something more convenient to work with:
-#     /home/pi/scripts
-#     /home/pi/scripts/rpi-usb-disk-copy
+# Use find with -type f(file), l(symlink) to list all files in a specified directory.
+# Example:
 #     /home/pi/scripts/rpi-usb-disk-copy/50-usb-disk.rules
 #     /home/pi/scripts/rpi-usb-disk-copy/debug-disable.sh
 #     /home/pi/scripts/rpi-usb-disk-copy/debug-enable.sh
@@ -21,4 +9,13 @@
 #     /home/pi/scripts/rpi-usb-disk-copy/usb-disk-copy-@.service
 #     /home/pi/scripts/rpi-usb-disk-copy/usb-disk-copy.sh
 #     /home/pi/scripts/rpi-usb-disk-copy/usb-disk-copy-wrapper.sh
-ls --recursive /home/pi | awk '/:$/&&f{s=$0;f=0};/:$/&&!f{sub(/:$/,"");s=$0;f=1;next};NF&&f{ print s"/"$0}'
+
+SRC_DEVICE_MOUNT_POINT="/home/pi/scripts/rpi-usb-disk-copy" # debug line
+DST_FOLDER_FULL_PATH="/tmp"
+
+SOURCE_FILES=( $(find $SRC_DEVICE_MOUNT_POINT -type f,l) )
+echo "Found ${#SOURCE_FILES[*]} file(s)"
+for SOURCE_FILE_PATH in "${SOURCE_FILES[@]}"
+do
+    echo "Processing file '$SOURCE_FILE_PATH'"
+done
