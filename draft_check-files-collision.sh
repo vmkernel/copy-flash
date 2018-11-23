@@ -1,18 +1,59 @@
-# Returns 0 if there's no collision and 1 if there is.
-# Example: check_files_collision <source_directory> <destination_directory> <file_name>
+# Return values
+#   0 – no collision has been detected
+#   1 – a collision has been detected
+#   -1 – an internal error has occured, can't check for collision
+#
+# Usage:
+#   Check_files_collision <source_directory> <destination_directory> <file_name>
 function check_files_collision () {
 
-    # TODO: check settings!
-    SRC_FOLDER_PATH=$1
-    DST_FOLDER_PATH=$2
-    SRC_FILE_NAME=$3
+    SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
+    DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
+    SRC_FILE_NAME=$3   # Assuming the third parameter as a source file name
 
+    # Checking first parameter
+    if [ -z "$SRC_FOLDER_PATH" ]
+    then
+        echo "*** ERROR *** Insufficient parameters: expected 3, got 0."
+        return -1
+    fi
+    
+    # Checking second parameter
+    if [ -z "$DST_FOLDER_PATH" ]
+    then
+        echo "*** ERROR *** Insufficient parameters: expected 3, got 1."
+        return -1
+    fi
+
+    # Checking third parameter
+    if [ -z "$SRC_FILE_NAME" ]
+    then
+        echo "*** ERROR *** Insufficient parameters: expected 3, got 2."
+        return -1
+    fi
+
+    # Checking if the source folder exists
+    SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
+    if [ -z "$SRC_FOLDER_RECORD" ]
+    then
+        echo "*** WARNING **** Source folder doesn't exists. Assuming no collission."
+        return 0
+    fi
+
+    # Checking if the destiantion folder exists
+    DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
+        if [ -z "$DST_FOLDER_PATH" ]
+    then
+        echo "*** WARNING **** Destination folder doesn't exists. Assuming no collission."
+        return 0
+    fi
+    
     # checking whether a file with the same name exists on the destination
     DST_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
     if [ -z "$DST_FILE_RECORD" ] 
     then # file doesn't exists
 
-        echo "Source file '$SRC_FILE_NAME' doesn't exist on the destination."
+        echo "Source file '$SRC_FILE_NAME' doesn't exist on the destination. Assuming no collision."
         return 0
 
     else # file exists
@@ -21,7 +62,7 @@ function check_files_collision () {
         SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
         if [ -z "$SRC_FILE_RECORD" ] # something went wrong, can't find source file with the same name
         then 
-            echo "*** WARNING *** Unable to get source file information. Assuming collision. Will rename source file during copying process."
+            echo "*** WARNING *** Unable to get source file information. Assuming collision."
             return 1
         fi
 
@@ -34,7 +75,7 @@ function check_files_collision () {
         SRC_FILE_SIZE=$(echo "$SRC_FILE_RECORD" | awk '{print $5}')
         if [[ -z "$DST_FILE_SIZE" || -z "$SRC_FILE_SIZE" ]]
         then
-            echo "*** WARNING *** Unable to get source and/or destination file size. Assuming collision. Will rename source file during copying process."
+            echo "*** WARNING *** Unable to get source and/or destination file size. Assuming collision."
             return 1
         fi
         if [ $DST_FILE_SIZE -ne $SRC_FILE_SIZE ]
@@ -56,7 +97,7 @@ function check_files_collision () {
         SRC_FILE_YEAR=$(echo "$SRC_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=1)
         if [[ -z "$DST_FILE_YEAR" || -z "$SRC_FILE_YEAR" ]]
         then
-            echo "*** WARNING *** Unable to get source and/or destination file year. Assuming collision. Will rename source file during copying process."
+            echo "*** WARNING *** Unable to get source and/or destination file year. Assuming collision."
             return 1
         fi
         if [ $DST_FILE_YEAR -ne $SRC_FILE_YEAR ]
@@ -72,7 +113,7 @@ function check_files_collision () {
         SRC_FILE_MONTH=$(echo "$SRC_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=2)
         if [[ -z "$DST_FILE_MONTH" || -z "$SRC_FILE_MONTH" ]]
         then
-            echo "*** WARNING *** Unable to get source and/or destination file month. Assuming collision. Will rename source file during copying process."
+            echo "*** WARNING *** Unable to get source and/or destination file month. Assuming collision."
             return 1
         fi
         if [ $DST_FILE_MONTH -ne $SRC_FILE_MONTH ]
@@ -88,7 +129,7 @@ function check_files_collision () {
         SRC_FILE_DAY=$(echo "$SRC_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=3)
         if [[ -z "$DST_FILE_DAY" || -z "$SRC_FILE_DAY" ]]
         then
-            echo "*** WARNING *** Unable to get source and/or destination file day. Assuming collision. Will rename source file during copying process."
+            echo "*** WARNING *** Unable to get source and/or destination file day. Assuming collision."
             return 1
         fi
         if [ $DST_FILE_DAY -ne $SRC_FILE_DAY ]
@@ -104,7 +145,7 @@ function check_files_collision () {
         SRC_FILE_HOURS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='1')
         if [[ -z "$DST_FILE_HOURS" || -z "$SRC_FILE_HOURS" ]]
         then
-            echo "*** WARNING *** Unable to get source and/or destination file hours. Assuming collision. Will rename source file during copying process."
+            echo "*** WARNING *** Unable to get source and/or destination file hours. Assuming collision."
             return 1
         fi
         if [ $DST_FILE_HOURS -ne $SRC_FILE_HOURS ]
@@ -120,7 +161,7 @@ function check_files_collision () {
         SRC_FILE_MINUTES=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='2')
         if [[ -z "$DST_FILE_MINUTES" || -z "$SRC_FILE_MINUTES" ]]
         then
-            echo "*** WARNING *** Unable to get source and/or destination file minutes. Assuming collision. Will rename source file during copying process."
+            echo "*** WARNING *** Unable to get source and/or destination file minutes. Assuming collision."
             return 1
         fi
         if [ $DST_FILE_MINUTES -ne $SRC_FILE_MINUTES ]
@@ -136,7 +177,7 @@ function check_files_collision () {
         SRC_FILE_SECONDS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='3')
         if [[ -z "$DST_FILE_SECONDS" || -z "$SRC_FILE_SECONDS" ]]
         then
-            echo "*** WARNING *** Unable to get source and/or destination file seconds. Assuming collision. Will rename source file during copying process."
+            echo "*** WARNING *** Unable to get source and/or destination file seconds. Assuming collision."
             return 1
         fi
         if [ $DST_FILE_SECONDS -ne $SRC_FILE_SECONDS ]
@@ -152,7 +193,7 @@ function check_files_collision () {
         #SRC_FILE_MILLISECONDS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=2)
         #if [[ -z "$DST_FILE_MILLISECONDS" || -z "$SRC_FILE_MILLISECONDS" ]]
         #then
-        #    echo "*** WARNING *** Unable to get source and/or destination file milliseconds. Assuming collision. Will rename source file during copying process."
+        #    echo "*** WARNING *** Unable to get source and/or destination file milliseconds. Assuming collision."
         #    return 1
         #fi
         #if [ $DST_FILE_MILLISECONDS -ne $SRC_FILE_MILLISECONDS ]
@@ -164,7 +205,7 @@ function check_files_collision () {
         #fi
     fi
 
-    # No colissions has been detected
+    echo "No colissions has been detected."
     return 0
 }
 
