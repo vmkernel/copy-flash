@@ -208,6 +208,3 @@ function check_files_collision () {
     echo "No colissions has been detected."
     return 0
 }
-
-
-check_files_collision /media/flash/ /media/hdd/Incoming/ name-collision-test.dat
