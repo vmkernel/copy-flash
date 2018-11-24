@@ -12,4 +12,4 @@ GPIO.setwarnings(False)
 
 # Initializing GPIO ports
 GPIO.setup(pinRed, GPIO.OUT)
-GPIO.output(pinRed, GPIO.HIGH)
+GPIO.output(pinRed, GPIO.LOW)
