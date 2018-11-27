@@ -211,14 +211,81 @@ function check_files_collision () {
 
 
 SRC_DEVICE_MOUNT_POINT="/home/pi/scripts/rpi-usb-disk-copy" # debug line
-DST_FOLDER_FULL_PATH="/tmp" # debug line
+DST_FOLDER_FULL_PATH="/home/pi/scripts" # debug line
+
+# Maximum value of file name counter
+# TODO: check if the variable is set
+declare -i FILE_NAME_COUNTER_MAX=1000
 
 SOURCE_FILES=( $(find $SRC_DEVICE_MOUNT_POINT -type f,l) )
 echo "Found ${#SOURCE_FILES[*]} file(s)"
 for SOURCE_FILE_PATH in "${SOURCE_FILES[@]}"
 do
     echo "Processing file '$SOURCE_FILE_PATH'"
-    check_files_collision "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH" "$SOURCE_FILE_PATH"
+
+    # TODO: Extract file name from the file path
+    SRC_FILE_NAME=$(basename $SOURCE_FILE_PATH)
+    if [ -z "$SRC_FILE_NAME" ]
+    then 
+        echo "*** ERROR *** Unable to extract file name from the file path. Will skip this file."
+        continue # BUG: Potential loss of data
+    fi
+
+    check_files_collision "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH" "$SRC_FILE_NAME"
     EXIT_CODE=$?
     echo "Exit code: $EXIT_CODE"
+
+    declare -i IS_NEW_NAME_REQUIRED=1
+    case $EXIT_CODE in
+        0)
+            echo "No collision has been detected. Will simply copy the file to the destination."
+            IS_NEW_NAME_REQUIRED=0
+        ;;
+        1)
+            echo "A collision has been detected. Will copy the file with a new name."
+        ;;
+        -1)
+            echo "An internal error has occured in the detection mechanism. Will copy the file with a new name."
+        ;;
+        *)
+            echo "An error has occured in the detection mechanism: got unsupported return code. Will copy the file with a new name."
+        ;;
+    esac
+
+    if [ $IS_NEW_NAME_REQUIRED -eq 1 ]
+    then
+        # Extracting base file name and extension from the file name
+        declare -i IS_NO_EXTENSION=0
+        declare SRC_FILE_BASE_NAME
+        SRC_FILE_EXT="${SRC_FILE_NAME##*.}"
+        if [ -z "$SRC_FILE_EXT" ]
+        then
+            echo "*** WARNING *** The file has no extension."
+            IS_NO_EXTENSION=1
+            SRC_FILE_BASE_NAME=$SRC_FILE_NAME
+        else
+            SRC_FILE_BASE_NAME="${SRC_FILE_NAME%.*}"
+        fi
+
+        if [ -z $SRC_FILE_BASE_NAME ]
+        then
+            echo "*** ERROR *** Unable to extract base file name from the file name. Will skip the file."
+            continue # BUG: Potential loss of data
+        fi
+
+        #TODO: Implement new file name generation algorithm (e.g.: <original_file_name><N>.<ext>)
+        declare DST_FILE_NAME
+        for FILE_NAME_COUNTER in `seq 1 $FILE_NAME_COUNTER_MAX`;
+        do
+            # Generating new file name
+            DST_FILE_NAME="$SRC_FILE_BASE_NAME ($FILE_NAME_COUNTER)"
+            if [ $IS_NO_EXTENSION -ne 1 ]
+            then
+                DST_FILE_NAME="$DST_FILE_NAME.$SRC_FILE_EXT"
+            fi
+
+            #TODO: check file name
+            #TODO: check if a file with the new name exists
+        done
+    fi
 done
