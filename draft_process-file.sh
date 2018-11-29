@@ -214,8 +214,16 @@ SRC_DEVICE_MOUNT_POINT="/home/pi/scripts/rpi-usb-disk-copy" # debug line
 DST_FOLDER_FULL_PATH="/home/pi/scripts" # debug line
 
 # Maximum value of file name counter
-# TODO: check if the variable is set
+#TODO: MOVE TO SETTINGS
 declare -i FILE_NAME_COUNTER_MAX=1000
+if [[ -z "$FILE_NAME_COUNTER_MAX" || $FILE_NAME_COUNTER_MAX -le 0 ]]
+then
+    echo "*** WARNING *** File name counter maximum is not set. Failing over to default value of 100."
+    FILE_NAME_COUNTER_MAX=100
+fi
+echo "Maximum counter value for file renaming is $FILE_NAME_COUNTER_MAX"
+#TODO: MOVE TO SETTINGS
+
 
 SOURCE_FILES=( $(find $SRC_DEVICE_MOUNT_POINT -type f,l) )
 echo "Found ${#SOURCE_FILES[*]} file(s)"
@@ -223,7 +231,6 @@ for SOURCE_FILE_PATH in "${SOURCE_FILES[@]}"
 do
     echo "Processing file '$SOURCE_FILE_PATH'"
 
-    # TODO: Extract file name from the file path
     SRC_FILE_NAME=$(basename $SOURCE_FILE_PATH)
     if [ -z "$SRC_FILE_NAME" ]
     then 
