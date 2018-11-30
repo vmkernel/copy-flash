@@ -230,6 +230,7 @@ SOURCE_FILES=( $(find $SRC_DEVICE_MOUNT_POINT -type f,l) )
 echo "Found ${#SOURCE_FILES[*]} file(s)"
 for SOURCE_FILE_PATH in "${SOURCE_FILES[@]}"
 do
+    echo ""
     echo "Processing file '$SOURCE_FILE_PATH'"
 
     SRC_FILE_NAME=$(basename $SOURCE_FILE_PATH)
@@ -239,30 +240,29 @@ do
         continue # BUG: Potential loss of data
     fi
 
-    # BUG: threats 'both files are the same' as no collistion
+    echo "Running collision check..."
     check_files_collision "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH" "$SRC_FILE_NAME"
     EXIT_CODE=$?
-    echo "check_file_collison() has exited with code: $EXIT_CODE"
 
     declare -i IS_NEW_NAME_REQUIRED=1
     declare -i IS_SKIP_FILE=0
     case $EXIT_CODE in
         0)
-            echo "No collision has been detected. Will copy the file to its destination."
+            echo "Will copy the file to its destination with the original name."
             IS_NEW_NAME_REQUIRED=0
         ;;
         2)
-            echo "A collision has been detected, but all files are the same. Will skip the file."
+            echo "Will skip the file."
             IS_SKIP_FILE=1
         ;;
         1)
-            echo "A collision has been detected. Will copy the file with a new name."
+            echo "Will copy the file with a new name."
         ;;
         -1)
-            echo "An unknown internal error has occured in the detection mechanism. Will copy the file with a new name."
+            echo "An unknown internal error has occured in collisions detection mechanism. Will copy the file with a new name."
         ;;
         *)
-            echo "An internal error has occured in the detection mechanism: got unsupported exit code ($EXIT_CODE). Will copy the file with a new name."
+            echo "An internal error has occured in collisions detection mechanism: got unsupported exit code ($EXIT_CODE). Will copy the file with a new name."
         ;;
     esac
 
