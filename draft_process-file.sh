@@ -280,8 +280,10 @@ do
             continue # BUG: Potential loss of data
         fi
 
-        #TODO: Implement new file name generation algorithm (e.g.: <original_file_name><N>.<ext>)
+        # New file name generation algorithm (e.g.: <original_file_name><N>.<ext>)
         declare DST_FILE_NAME
+        declare -i IS_ERROR=0
+        declare -i IS_NEW_NAME_FOUND=0
         for FILE_NAME_COUNTER in `seq 1 $FILE_NAME_COUNTER_MAX`;
         do
             # Generating new file name
@@ -291,8 +293,38 @@ do
                 DST_FILE_NAME="$DST_FILE_NAME.$SRC_FILE_EXT"
             fi
 
-            #TODO: check file name
-            #TODO: check if a file with the new name exists
+            # Generating new file full path
+            DST_FILE_FULL_PATH="$DST_FOLDER_FULL_PATH/$DST_FILE_NAME"
+            if [ -z "$DST_FILE_FULL_PATH" ]
+            then
+                echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
+                IS_ERROR=1
+                break # BUG: Potential loss of data
+            fi
+
+            # Checking if a file with the same (new) name exists at the destination folder
+            DST_FILE_RECORD=$(ls --all $DST_FILE_FULL_PATH 2> /dev/null)
+            if [ -z $DST_FILE_RECORD ]
+            then # Destination file with the new name is not found, will continue with the name
+                echo "Found first available name for the file: '$DST_FILE_NAME'"
+                IS_NEW_NAME_FOUND=1
+                break
+            fi
         done
+
+        if [ $IS_ERROR -ne 0 ]
+        then
+            continue # BUG: Potential loss of data
+        fi
+
+        if [ $IS_NEW_NAME_FOUND -ne 1 ]
+        then
+            # TODO: Implement some failover mechanism to generata completely random file name
+            echo "*** ERROR *** The new file name generation alghorithm has run to it's maximum file counter value ($FILE_NAME_COUNTER_MAX), but was unable to find a free number for the file name. Will skip the file."
+            continue
+        fi
     fi
+
+    # TODO: rsync call here
+
 done
