@@ -1,3 +1,4 @@
+# TODO: Add a description for the function
 # Return values
 #   0 – no collision has been detected
 #   1 – a collision has been detected, files are different
@@ -210,6 +211,130 @@ function check_files_collision () {
     return 2
 }
 
+# TODO: add a description for the function
+# TODO: rename the function
+function copy_files () {
+    SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
+    DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
+
+    # TODO: check settings
+
+    SRC_FILES_LIST=( $(find $SRC_FOLDER_PATH -type f,l) )
+    echo "Found ${#SRC_FILES_LIST[*]} file(s)"
+    for SRC_FILE_PATH in "${SRC_FILES_LIST[@]}"
+    do
+        echo ""
+        echo "Processing file '$SRC_FILE_PATH'"
+
+        SRC_FILE_NAME=$(basename $SRC_FILE_PATH)
+        if [ -z "$SRC_FILE_NAME" ]
+        then 
+            echo "*** ERROR *** Unable to extract file name from the file path. Will skip this file."
+            continue # BUG: Potential loss of data
+        fi
+
+        echo "Running collision check..."
+        check_files_collision "$SRC_FOLDER_PATH" "$DST_FOLDER_PATH" "$SRC_FILE_NAME"
+        EXIT_CODE=$?
+
+        declare -i IS_NEW_NAME_REQUIRED=1
+        declare -i IS_SKIP_FILE=0
+        case $EXIT_CODE in
+            0)
+                echo "Will copy the file to its destination with the original name."
+                IS_NEW_NAME_REQUIRED=0
+            ;;
+            2)
+                echo "Will skip the file."
+                IS_SKIP_FILE=1
+            ;;
+            1)
+                echo "Will copy the file with a new name."
+            ;;
+            -1)
+                echo "An unknown internal error has occured in collisions detection mechanism. Will copy the file with a new name."
+            ;;
+            *)
+                echo "An internal error has occured in collisions detection mechanism: got unsupported exit code ($EXIT_CODE). Will copy the file with a new name."
+            ;;
+        esac
+
+        if [ $IS_SKIP_FILE -eq 1 ]
+        then
+            continue
+        fi
+
+        if [ $IS_NEW_NAME_REQUIRED -eq 1 ]
+        then
+            # Extracting base file name and extension from the file name
+            declare -i IS_NO_EXTENSION=0
+            declare SRC_FILE_BASE_NAME
+            SRC_FILE_EXT="${SRC_FILE_NAME##*.}"
+            if [ -z "$SRC_FILE_EXT" ]
+            then
+                echo "*** WARNING *** The file has no extension."
+                IS_NO_EXTENSION=1
+                SRC_FILE_BASE_NAME=$SRC_FILE_NAME
+            else
+                SRC_FILE_BASE_NAME="${SRC_FILE_NAME%.*}"
+            fi
+
+            if [ -z $SRC_FILE_BASE_NAME ]
+            then
+                echo "*** ERROR *** Unable to extract base file name from the file name. Will skip the file."
+                continue # BUG: Potential loss of data
+            fi
+
+            # New file name generation algorithm (e.g.: <original_file_name><N>.<ext>)
+            declare DST_FILE_NAME
+            declare -i IS_ERROR=0
+            declare -i IS_NEW_NAME_FOUND=0
+            for FILE_NAME_COUNTER in `seq 1 $FILE_NAME_COUNTER_MAX`;
+            do
+                # Generating new file name
+                DST_FILE_NAME="$SRC_FILE_BASE_NAME($FILE_NAME_COUNTER)"
+                if [ $IS_NO_EXTENSION -ne 1 ]
+                then
+                    DST_FILE_NAME="$DST_FILE_NAME.$SRC_FILE_EXT"
+                fi
+
+                # Generating new file full path
+                DST_FILE_FULL_PATH="$DST_FOLDER_PATH/$DST_FILE_NAME"
+                if [ -z "$DST_FILE_FULL_PATH" ]
+                then
+                    echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
+                    IS_ERROR=1
+                    break # BUG: Potential loss of data
+                fi
+
+                # Checking if a file with the same (new) name exists at the destination folder
+                DST_FILE_RECORD=$(ls --all $DST_FILE_FULL_PATH 2> /dev/null)
+                if [ -z $DST_FILE_RECORD ]
+                then # Destination file with the new name is not found, will continue with the name
+                    echo "Found first available name: '$DST_FILE_NAME'"
+                    IS_NEW_NAME_FOUND=1
+                    break
+                fi
+            done
+
+            if [ $IS_ERROR -ne 0 ]
+            then
+                continue # BUG: Potential loss of data
+            fi
+
+            if [ $IS_NEW_NAME_FOUND -ne 1 ]
+            then
+                # TODO: Implement some failover mechanism to generata completely random file name
+                echo "*** ERROR *** The new file name generation alghorithm has run to it's maximum file counter value ($FILE_NAME_COUNTER_MAX), but was unable to find a free number for the file name. Will skip the file."
+                continue
+            fi
+        fi
+
+        # TODO: rsync call here
+        rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
+
+    done
+}
 
 SRC_DEVICE_MOUNT_POINT="/home/pi/scripts/rpi-usb-disk-copy" # debug line
 DST_FOLDER_FULL_PATH="/opt/usb-disk-copy" # debug line
@@ -225,119 +350,4 @@ fi
 echo "Maximum counter value for file renaming is $FILE_NAME_COUNTER_MAX"
 #TODO: MOVE TO SETTINGS
 
-
-SOURCE_FILES=( $(find $SRC_DEVICE_MOUNT_POINT -type f,l) )
-echo "Found ${#SOURCE_FILES[*]} file(s)"
-for SOURCE_FILE_PATH in "${SOURCE_FILES[@]}"
-do
-    echo ""
-    echo "Processing file '$SOURCE_FILE_PATH'"
-
-    SRC_FILE_NAME=$(basename $SOURCE_FILE_PATH)
-    if [ -z "$SRC_FILE_NAME" ]
-    then 
-        echo "*** ERROR *** Unable to extract file name from the file path. Will skip this file."
-        continue # BUG: Potential loss of data
-    fi
-
-    echo "Running collision check..."
-    check_files_collision "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH" "$SRC_FILE_NAME"
-    EXIT_CODE=$?
-
-    declare -i IS_NEW_NAME_REQUIRED=1
-    declare -i IS_SKIP_FILE=0
-    case $EXIT_CODE in
-        0)
-            echo "Will copy the file to its destination with the original name."
-            IS_NEW_NAME_REQUIRED=0
-        ;;
-        2)
-            echo "Will skip the file."
-            IS_SKIP_FILE=1
-        ;;
-        1)
-            echo "Will copy the file with a new name."
-        ;;
-        -1)
-            echo "An unknown internal error has occured in collisions detection mechanism. Will copy the file with a new name."
-        ;;
-        *)
-            echo "An internal error has occured in collisions detection mechanism: got unsupported exit code ($EXIT_CODE). Will copy the file with a new name."
-        ;;
-    esac
-
-    if [ $IS_SKIP_FILE -eq 1 ]
-    then
-        continue
-    fi
-
-    if [ $IS_NEW_NAME_REQUIRED -eq 1 ]
-    then
-        # Extracting base file name and extension from the file name
-        declare -i IS_NO_EXTENSION=0
-        declare SRC_FILE_BASE_NAME
-        SRC_FILE_EXT="${SRC_FILE_NAME##*.}"
-        if [ -z "$SRC_FILE_EXT" ]
-        then
-            echo "*** WARNING *** The file has no extension."
-            IS_NO_EXTENSION=1
-            SRC_FILE_BASE_NAME=$SRC_FILE_NAME
-        else
-            SRC_FILE_BASE_NAME="${SRC_FILE_NAME%.*}"
-        fi
-
-        if [ -z $SRC_FILE_BASE_NAME ]
-        then
-            echo "*** ERROR *** Unable to extract base file name from the file name. Will skip the file."
-            continue # BUG: Potential loss of data
-        fi
-
-        # New file name generation algorithm (e.g.: <original_file_name><N>.<ext>)
-        declare DST_FILE_NAME
-        declare -i IS_ERROR=0
-        declare -i IS_NEW_NAME_FOUND=0
-        for FILE_NAME_COUNTER in `seq 1 $FILE_NAME_COUNTER_MAX`;
-        do
-            # Generating new file name
-            DST_FILE_NAME="$SRC_FILE_BASE_NAME($FILE_NAME_COUNTER)"
-            if [ $IS_NO_EXTENSION -ne 1 ]
-            then
-                DST_FILE_NAME="$DST_FILE_NAME.$SRC_FILE_EXT"
-            fi
-
-            # Generating new file full path
-            DST_FILE_FULL_PATH="$DST_FOLDER_FULL_PATH/$DST_FILE_NAME"
-            if [ -z "$DST_FILE_FULL_PATH" ]
-            then
-                echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
-                IS_ERROR=1
-                break # BUG: Potential loss of data
-            fi
-
-            # Checking if a file with the same (new) name exists at the destination folder
-            DST_FILE_RECORD=$(ls --all $DST_FILE_FULL_PATH 2> /dev/null)
-            if [ -z $DST_FILE_RECORD ]
-            then # Destination file with the new name is not found, will continue with the name
-                echo "Found first available name: '$DST_FILE_NAME'"
-                IS_NEW_NAME_FOUND=1
-                break
-            fi
-        done
-
-        if [ $IS_ERROR -ne 0 ]
-        then
-            continue # BUG: Potential loss of data
-        fi
-
-        if [ $IS_NEW_NAME_FOUND -ne 1 ]
-        then
-            # TODO: Implement some failover mechanism to generata completely random file name
-            echo "*** ERROR *** The new file name generation alghorithm has run to it's maximum file counter value ($FILE_NAME_COUNTER_MAX), but was unable to find a free number for the file name. Will skip the file."
-            continue
-        fi
-    fi
-
-    # TODO: rsync call here
-    rsync --human-readable --progress --times "$SOURCE_FILE_PATH" "$DST_FILE_FULL_PATH"
-
-done
+copy_files "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH"
