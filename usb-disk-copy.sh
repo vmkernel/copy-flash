@@ -360,16 +360,21 @@ echo "STARTING FILE COPY PROCESS..."
 echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
 echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
 
-# Trailing slashes is added to skip parent directory creation on destination
-if [ $IS_ALL_IN_ONE_FOLDER -eq 1 ] # New-way, all-in-one folder mode
+if [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Old-way, separate folder mode
 then
-    rsync --recursive --human-readable --progress --times --append-verify "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
-elif [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Old-way, separate folder mode
-then
+    # Trailing slashes is added to skip parent directory creation on destination
+    echo "Offloading all the work to rsync for the old-way copy mode..."
     rsync --recursive --human-readable --progress --times "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
+
+else # New-way, all-in-one folder mode
+
+    # TODO: Insert new file copy logic here, remove rsync call, make a function
+    rsync --recursive --human-readable --progress --times --append-verify "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
+
 fi
+
 EXIT_CODE=$?
-echo "Copy process has finished. Exit code: $EXIT_CODE"
+echo "Copy process has finished with code: $EXIT_CODE"
 #### End of copying files ####
 
 
