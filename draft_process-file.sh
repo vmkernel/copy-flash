@@ -338,5 +338,6 @@ do
     fi
 
     # TODO: rsync call here
+    rsync --human-readable --progress --times "$SOURCE_FILE_PATH" "$DST_FILE_FULL_PATH"
 
 done
