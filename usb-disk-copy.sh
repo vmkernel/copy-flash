@@ -9,6 +9,7 @@
 #            it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
 #            it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
 # * General: add disk label information (Issue #13).
+# * General: check return values (e.g. for mkdir).
 
 #### SETTINGS ####
 # Source device mount point (without a trailing slash!)
@@ -69,6 +70,7 @@ else
         exit 1
     fi
     mkdir --parents $DST_DEVICE_MOUNT_POINT
+    # TODO: check return values
 fi
 
 if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
@@ -84,6 +86,7 @@ else
         exit 1
     fi
     mkdir --parents $SRC_DEVICE_MOUNT_POINT
+    # TODO: check return values
 fi
 
 if [ -z "$DST_FOLDER_ROOT" ]
@@ -129,7 +132,6 @@ echo "SEARCHING FOR DEVICES..."
 
 # Enumerating all attached SCSI disks using name pattern /dev/sd*1
 ATTACHED_SCSI_DISKS=( $(ls -la /dev/ | grep --ignore-case --perl-regexp "sd(\w+)1" | awk '{print $10}' | sort) )
-
 if [ ${#ATTACHED_SCSI_DISKS[*]} -le 0 ] # Checking for an empty array
 then
     # Got an empty array, 'cuse no device was found
@@ -370,7 +372,6 @@ else # New-way, all-in-one folder mode
 
     # TODO: Insert new file copy logic here, remove rsync call, make a function
     rsync --recursive --human-readable --progress --times --append-verify "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
-
 fi
 
 EXIT_CODE=$?
