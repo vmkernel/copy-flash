@@ -1,36 +1,52 @@
-# TODO: Add a description for the function
-# Return values
-#   0 – no collision has been detected
-#   1 – a collision has been detected, files are different
-#   2 - a collision has been detected, but both files are the same
-#   -1 – an internal error has occured, can't check for collision
-#
-# Usage:
-#   Check_files_collision <source_directory> <destination_directory> <file_name>
+#!/bin/bash
+
 function check_files_collision () {
+    # SUMMARY
+    # This function checks collision between two files in the source and the destination folder.
+    #
+    # DESCRIPTION
+    # It receives source and destination folders full paths and a file name in the source directory for which collission is checked.
+    # If there's no file with the same name in destination folder, the function assumes that there's no collision.
+    # * If there's a file with the same name in the destination folder, the function compares both files by theirs size and creation date/time.
+    # * If any of these attributes are detected to be different, the function assumes that a collision has appeared and we need to work it out.
+    # * If all of there attributes are the same, the function assumes that a collision has appeared, but both files are the same and no action is required, so we can skip the file.
+    #
+    # ARGUMENTS
+    #   <source_folder> - full path to the source folder
+    #   <destination_folder> - full path to the destination folder
+    #   <file_name> - name of a file in source folder 
+    #
+    # RETURN CODES
+    #   0 – no collision has been detected
+    #   1 – a collision has been detected, files are different
+    #   2 - a collision has been detected, but both files are the same
+    #  -1 – an internal error has occured, can't check for collision
+    #
+    # USAGE
+    #   Check_files_collision <source_folder> <destination_folder> <file_name>
 
     SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
     DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
     SRC_FILE_NAME=$3   # Assuming the third parameter as a source file name
 
-    # Checking first parameter
+    # Checking source folder path
     if [ -z "$SRC_FOLDER_PATH" ]
     then
-        echo "*** ERROR *** Insufficient arguments: expected 3, got 0."
+        echo "*** ERROR *** check_files_collision: insufficient arguments (expected 3, got 0)."
         return -1
     fi
     
-    # Checking second parameter
+    # Checking destination folder path
     if [ -z "$DST_FOLDER_PATH" ]
     then
-        echo "*** ERROR *** Insufficient arguments: expected 3, got 1."
+        echo "*** ERROR *** check_files_collision: insufficient arguments (expected 3, got 1)."
         return -1
     fi
 
-    # Checking third parameter
+    # Checking source file name
     if [ -z "$SRC_FILE_NAME" ]
     then
-        echo "*** ERROR *** Insufficient arguments: expected 3, got 2."
+        echo "*** ERROR *** check_files_collision: insufficient arguments (expected 3, got 2)."
         return -1
     fi
 
@@ -84,15 +100,7 @@ function check_files_collision () {
         then
             echo "A collision has been detected by file size (source = $SRC_FILE_SIZE, destination = $DST_FILE_SIZE)."
             return 1
-        #else
-        #    echo "Size: $SRC_FILE_SIZE (same)"
         fi
-
-        # Extracting date and time strings for both source and destination files
-        DST_FILE_DATE=$(echo "$DST_FILE_RECORD" | awk '{print $6}')
-        DST_FILE_TIME_MS=$(echo "$DST_FILE_RECORD" | awk '{print $7}')
-        SRC_FILE_DATE=$(echo "$SRC_FILE_RECORD" | awk '{print $6}')
-        SRC_FILE_TIME_MS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}')
 
         # Comparing files years
         DST_FILE_YEAR=$(echo "$DST_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=1)
@@ -106,8 +114,6 @@ function check_files_collision () {
         then
             echo "A collision has been detected by file year (source = $SRC_FILE_YEAR, destination = $DST_FILE_YEAR)."
             return 1
-        #else
-        #    echo "Year: $SRC_FILE_YEAR (same)"
         fi
 
         # Comparing files month
@@ -122,8 +128,6 @@ function check_files_collision () {
         then
             echo "A collision has been detected by file month (source = $SRC_FILE_MONTH, destination = $DST_FILE_MONTH)."
             return 1
-        #else
-        #    echo "Month: $SRC_FILE_MONTH (same)"
         fi
 
         # Comparing files day
@@ -138,8 +142,6 @@ function check_files_collision () {
         then
             echo "A collision has been detected by file day (source = $SRC_FILE_DAY, destination = $DST_FILE_DAY)."
             return 1
-        #else
-        #    echo "Day: $SRC_FILE_DAY (same)"
         fi
 
         # Comparing file hours
@@ -154,8 +156,6 @@ function check_files_collision () {
         then
             echo "A collision has been detected by file hours (source = $SRC_FILE_HOURS, destination = $DST_FILE_HOURS)."
             return 1
-        #else
-        #    echo "Hour: $SRC_FILE_HOURS (same)"
         fi
 
         # Comparing file minutes
@@ -170,8 +170,6 @@ function check_files_collision () {
         then
             echo "A collision has been detected by file minutes (source = $SRC_FILE_MINUTES, destination = $DST_FILE_MINUTES)."
             return 1
-        #else
-        #    echo "Minute: $SRC_FILE_MINUTES (same)"
         fi
 
         # Comparing file seconds 
@@ -186,25 +184,21 @@ function check_files_collision () {
         then
             echo "A collision has been detected by file seconds (source = $SRC_FILE_SECONDS, destination = $DST_FILE_SECONDS)."
             return 1
-        #else
-        #    echo "Seconds: $SRC_FILE_SECONDS (same)"
         fi
 
-        ## Compating file milliseconds (I don't know for sure should it be here or not)
-        #DST_FILE_MILLISECONDS=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=2)
-        #SRC_FILE_MILLISECONDS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=2)
-        #if [[ -z "$DST_FILE_MILLISECONDS" || -z "$SRC_FILE_MILLISECONDS" ]]
-        #then
-        #    echo "*** WARNING *** Unable to get source and/or destination file milliseconds. Assuming collision."
-        #    return 1
-        #fi
-        #if [ $DST_FILE_MILLISECONDS -ne $SRC_FILE_MILLISECONDS ]
-        #then
-        #    echo "A collision has been detected by file milliseconds (source = $SRC_FILE_MILLISECONDS, destination = $DST_FILE_MILLISECONDS)."
-        #    return 1
-        ##else
-        ##    echo "Milliseconds: $SRC_FILE_MILLISECONDS (same)"
-        #fi
+        # Compating file milliseconds (I don't know for sure should it be here or not)
+        DST_FILE_MILLISECONDS=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=2)
+        SRC_FILE_MILLISECONDS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=2)
+        if [[ -z "$DST_FILE_MILLISECONDS" || -z "$SRC_FILE_MILLISECONDS" ]]
+        then
+            echo "*** WARNING *** Unable to get source and/or destination file milliseconds. Assuming collision."
+            return 1
+        fi
+        if [ $DST_FILE_MILLISECONDS -ne $SRC_FILE_MILLISECONDS ]
+        then
+            echo "A collision has been detected by file milliseconds (source = $SRC_FILE_MILLISECONDS, destination = $DST_FILE_MILLISECONDS)."
+            return 1
+        fi
     fi
 
     echo "Both files are the same by their's date/time and size."
@@ -214,15 +208,67 @@ function check_files_collision () {
 # TODO: add a description for the function
 # TODO: rename the function
 function copy_files () {
+    # SUMMARY
+    #
+    #
+    # DESCRIPTION
+    #
+    #
+    # ARGUMENTS
+    #
+    #
+    # RETURN CODES
+    #   0 – operation has been finished successfully
+    #  -1 – an internal error has occured, can't check for collision
+    #
+    # USAGE
+    #
+
     SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
     DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
 
-    # TODO: check settings
+    # Checking source folder path
+    if [ -z "$SRC_FOLDER_PATH" ]
+    then
+        echo "*** ERROR *** copy_files: insufficient arguments (expected 2, got 0)."
+        return -1
+    fi
+
+    # Checking destination folder path
+    if [ -z "$DST_FOLDER_PATH" ]
+    then
+        echo "*** ERROR *** copy_files: insufficient arguments (expected 2, got 1)."
+        return -1
+    fi
+
+    # Checking if the source folder exists
+    SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
+    if [ -z "$SRC_FOLDER_RECORD" ]
+    then
+        echo "*** ERROR **** Source folder doesn't exists. Input argument error."
+        return -1
+    fi
+
+    # Checking if the destiantion folder exists
+    DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
+    if [ -z "$DST_FOLDER_PATH" ]
+    then
+        echo "*** WARNING **** Destination folder '$DST_FOLDER_PATH' doesn't exists. Will create."
+        mkdir --parents $DST_FOLDER_PATH
+        DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
+        if [ -z "$DST_FOLDER_RECORD" ]
+        then
+            echo "*** ERROR **** Unable to create the destination filder."
+            return -1
+        fi
+    fi
 
     SRC_FILES_LIST=( $(find $SRC_FOLDER_PATH -type f,l) )
+    # TODO: check SRC_FILES_LIST
     echo "Found ${#SRC_FILES_LIST[*]} file(s)"
     for SRC_FILE_PATH in "${SRC_FILES_LIST[@]}"
     do
+        # TODO: check SRC_FILE_PATH
         echo ""
         echo "Processing file '$SRC_FILE_PATH'"
 
@@ -230,10 +276,9 @@ function copy_files () {
         if [ -z "$SRC_FILE_NAME" ]
         then 
             echo "*** ERROR *** Unable to extract file name from the file path. Will skip this file."
-            continue # BUG: Potential loss of data
+            continue # BUG: Potential loss of data (try mkstemp?)
         fi
 
-        echo "Running collision check..."
         check_files_collision "$SRC_FOLDER_PATH" "$DST_FOLDER_PATH" "$SRC_FILE_NAME"
         EXIT_CODE=$?
 
@@ -282,7 +327,7 @@ function copy_files () {
             if [ -z $SRC_FILE_BASE_NAME ]
             then
                 echo "*** ERROR *** Unable to extract base file name from the file name. Will skip the file."
-                continue # BUG: Potential loss of data
+                continue # BUG: Potential loss of data (try mkstemp?)
             fi
 
             # New file name generation algorithm (e.g.: <original_file_name><N>.<ext>)
@@ -298,13 +343,15 @@ function copy_files () {
                     DST_FILE_NAME="$DST_FILE_NAME.$SRC_FILE_EXT"
                 fi
 
+                # TODO: check DST_FILE_NAME
+
                 # Generating new file full path
                 DST_FILE_FULL_PATH="$DST_FOLDER_PATH/$DST_FILE_NAME"
                 if [ -z "$DST_FILE_FULL_PATH" ]
                 then
                     echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
                     IS_ERROR=1
-                    break # BUG: Potential loss of data
+                    break # BUG: Potential loss of data (try mkstemp?)
                 fi
 
                 # Checking if a file with the same (new) name exists at the destination folder
@@ -319,7 +366,7 @@ function copy_files () {
 
             if [ $IS_ERROR -ne 0 ]
             then
-                continue # BUG: Potential loss of data
+                continue # BUG: Potential loss of data (try mkstemp?)
             fi
 
             if [ $IS_NEW_NAME_FOUND -ne 1 ]
@@ -330,8 +377,11 @@ function copy_files () {
             fi
         fi
 
-        # TODO: rsync call here
+        # Calling rsync to copy the file
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
+        EXIT_CODE=$?
+
+        # TODO: check EXIT_CODE
 
     done
 }
