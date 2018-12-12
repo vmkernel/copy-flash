@@ -205,8 +205,8 @@ function check_files_collision () {
     return 2
 }
 
-# TODO: rename the function
-function copy_files () {
+# TODO: Fix potential loss of data, when skipping a file (try mkstemp?)
+function copy_folder () {
     # SUMMARY
     # This function discovers and copies all files from a specified folder to a destination folder
     #   implementing extended logic to check if the destination has a file with the same name as the source one.
@@ -226,25 +226,31 @@ function copy_files () {
     #   2 – operation has been finished with warnings
     #
     # USAGE
-    #   copy_files <source_folder> <destiantion_folder>
+    #   copy_folder <source_folder> <destiantion_folder>
 
-    SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
-    DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
+    # Assuming the first parameter as a source folder
+    SRC_FOLDER_PATH=$1 
+    # Assuming the second parameter as a destination folder
+    DST_FOLDER_PATH=$2
 
-    declare -i IS_ERROR_RECOVERABLE=0 # Flag to decide which exit code should return the function upon completion
-    declare -i IS_WARNING=0 # Flag to decide which exit code should return the function upon completion
+    # Flag to decide which exit code should return the function upon completion
+    declare -i IS_ERRORS_DETECTED=0     
+    # Flag to decide which exit code should return the function upon completion
+    declare -i IS_WARNINGS_DETECTED=0
+    # Maximum value of file name counter
+    declare -i FILE_NAME_COUNTER_MAX=1000 
 
     # Checking source folder path
     if [ -z "$SRC_FOLDER_PATH" ]
     then
-        echo "*** ERROR *** copy_files: insufficient arguments (expected 2, got 0)."
+        echo "*** ERROR *** copy_folder: insufficient arguments (expected 2, got 0)."
         return -1
     fi
 
     # Checking destination folder path
     if [ -z "$DST_FOLDER_PATH" ]
     then
-        echo "*** ERROR *** copy_files: insufficient arguments (expected 2, got 1)."
+        echo "*** ERROR *** copy_folder: insufficient arguments (expected 2, got 1)."
         return -1
     fi
 
@@ -287,8 +293,8 @@ function copy_files () {
         if [ -z "$SRC_FILE_PATH" ]
         then
             echo "*** ERROR *** Got an empty path from discovered files array instead of a file path. Will skip this line."
-            IS_ERROR_RECOVERABLE=1
-            continue # BUG: Potential loss of data
+            IS_ERRORS_DETECTED=1
+            continue # BUG: Potential loss of data (try mkstemp?)
         fi
 
         echo ""
@@ -299,8 +305,8 @@ function copy_files () {
         if [ -z "$SRC_FILE_RECORD" ]
         then
             echo "*** ERROR **** Unable to find the source file '$SRC_FILE_PATH'. Will skip this one."
-            IS_ERROR_RECOVERABLE=1
-            continue # BUG: Potential loss of data
+            IS_ERRORS_DETECTED=1
+            continue # BUG: Potential loss of data (try mkstemp?)
         fi
 
         # Extracting file name from the file path
@@ -308,7 +314,7 @@ function copy_files () {
         if [ -z "$SRC_FILE_NAME" ]
         then 
             echo "*** ERROR *** Unable to extract file name from the file path. Will skip this file."
-            IS_ERROR_RECOVERABLE=1
+            IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
 
@@ -333,11 +339,11 @@ function copy_files () {
             ;;
             -1) # Internal error detected, assuming that new name is required
                 echo "An unknown internal error has occured in collisions detection mechanism. Will copy the file with a new name."
-                IS_WARNING=1
+                IS_WARNINGS_DETECTED=1
             ;;
             *)  # Internal error, unsopportex exit code, assuming that new name is required
                 echo "An internal error has occured in collisions detection mechanism: got unsupported exit code ($EXIT_CODE). Will copy the file with a new name."
-                IS_WARNING=1
+                IS_WARNINGS_DETECTED=1
             ;;
         esac
 
@@ -350,15 +356,12 @@ function copy_files () {
         # Generating a brand new name for the file, if required
         if [ $IS_NEW_NAME_REQUIRED -eq 1 ]
         then
-            declare -i IS_NO_EXTENSION=0 # Flag, if there's no extension in the file
             declare SRC_FILE_BASE_NAME   # Base name of the source file
 
             # Extracting base file name and extension from the file name
             SRC_FILE_EXT="${SRC_FILE_NAME##*.}"
             if [ -z "$SRC_FILE_EXT" ]
             then
-                #echo "*** WARNING *** The file has no extension."
-                IS_NO_EXTENSION=1
                 SRC_FILE_BASE_NAME=$SRC_FILE_NAME
             else
                 SRC_FILE_BASE_NAME="${SRC_FILE_NAME%.*}"
@@ -367,7 +370,7 @@ function copy_files () {
             if [ -z $SRC_FILE_BASE_NAME ]
             then
                 echo "*** ERROR *** Unable to extract base file name from the file name. Will skip the file."
-                IS_ERROR_RECOVERABLE=1
+                IS_ERRORS_DETECTED=1
                 continue # BUG: Potential loss of data (try mkstemp?)
             fi
 
@@ -377,16 +380,18 @@ function copy_files () {
             declare -i IS_NEW_NAME_FOUND=0
             for FILE_NAME_COUNTER in `seq 1 $FILE_NAME_COUNTER_MAX`;
             do
-                # TODO: check the counter & failover to a random value
-
                 # Generating new file name
                 DST_FILE_NAME="$SRC_FILE_BASE_NAME($FILE_NAME_COUNTER)"
-                if [ $IS_NO_EXTENSION -ne 1 ]
+                if [[ ! -z "$SRC_FILE_EXT" ]]
                 then
                     DST_FILE_NAME="$DST_FILE_NAME.$SRC_FILE_EXT"
                 fi
-
-                # TODO: check DST_FILE_NAME for NULL
+                if [ -z "$DST_FILE_NAME" ]
+                then
+                    echo "*** ERROR *** Unable to generate new name for the destination file. Will skip the file."
+                    IS_NAME_GEN_ERROR=1
+                    break
+                fi
 
                 # Generating new file full path
                 DST_FILE_FULL_PATH="$DST_FOLDER_PATH/$DST_FILE_NAME"
@@ -394,7 +399,7 @@ function copy_files () {
                 then
                     echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
                     IS_NAME_GEN_ERROR=1
-                    break # BUG: Potential loss of data (try mkstemp?)
+                    break
                 fi
 
                 # Checking if a file with the same (new) name exists at the destination folder
@@ -409,35 +414,40 @@ function copy_files () {
 
             if [ $IS_NAME_GEN_ERROR -ne 0 ]
             then
-                IS_ERROR_RECOVERABLE=1
+                IS_ERRORS_DETECTED=1
                 continue # BUG: Potential loss of data (try mkstemp?)
             fi
 
             if [ $IS_NEW_NAME_FOUND -ne 1 ]
             then
-                # TODO: Implement some failover mechanism to generata completely random file name
                 echo "*** ERROR *** The new file name generation alghorithm has run to it's maximum file counter value ($FILE_NAME_COUNTER_MAX), but was unable to find a free number for the file name. Will skip the file."
-                IS_ERROR_RECOVERABLE=1
+                IS_ERRORS_DETECTED=1
                 continue # BUG: Potential loss of data (try mkstemp?)
             fi
         fi
 
         # Calling rsync to copy the file
+        echo "Invoking rsync..."
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
         EXIT_CODE=$?
-
-        # TODO: check EXIT_CODE
+        if [ $EXIT_CODE -ne 0 ]
+        then
+            echo "*** ERROR *** rsync has failed to copy the file (exit code: $EXIT_CODE)"
+            IS_ERRORS_DETECTED=1
+        else
+            echo "rsync has finished successfylly (exit code: $EXIT_CODE)"
+        fi
     done
 
-    # TODO: Analyze error flags
-    if [ IS_ERROR_RECOVERABLE -eq 1 ]
+    # Exiting with the corresponding exti code
+    if [ IS_ERRORS_DETECTED -eq 1 ]
     then
         return 1 # some errors has been deteced
-    else
-        if [ IS_WARNING -eq 1 ]
-        then
-            return 2 # some warnings has been detected
-        fi
+    fi
+
+    if [ IS_WARNINGS_DETECTED -eq 1 ]
+    then
+        return 2 # some warnings has been detected
     fi
 
     return 0 # no issues has been detected
@@ -446,15 +456,4 @@ function copy_files () {
 SRC_DEVICE_MOUNT_POINT="/home/pi/scripts/rpi-usb-disk-copy" # debug line
 DST_FOLDER_FULL_PATH="/opt/usb-disk-copy" # debug line
 
-# Maximum value of file name counter
-#TODO: MOVE TO SETTINGS
-declare -i FILE_NAME_COUNTER_MAX=1000
-if [[ -z "$FILE_NAME_COUNTER_MAX" || $FILE_NAME_COUNTER_MAX -le 0 ]]
-then
-    echo "*** WARNING *** File name counter maximum is not set. Failing over to default value of 100."
-    FILE_NAME_COUNTER_MAX=100
-fi
-echo "Maximum counter value for file renaming is $FILE_NAME_COUNTER_MAX"
-#TODO: MOVE TO SETTINGS
-
-copy_files "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH"
+copy_folder "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH"
