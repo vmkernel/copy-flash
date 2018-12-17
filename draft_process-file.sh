@@ -277,6 +277,7 @@ function copy_folder () {
     fi
 
     # Discoverying files in the source folder
+    IFS=$'\n' # Setting default delimeter to new-line symbol
     SRC_FILES_LIST=( $(find $SRC_FOLDER_PATH -type f,l) )
     if [ ${#SRC_FILES_LIST[*]} -le 0 ]
     then
@@ -440,12 +441,12 @@ function copy_folder () {
     done
 
     # Exiting with the corresponding exti code
-    if [ IS_ERRORS_DETECTED -eq 1 ]
+    if [ $IS_ERRORS_DETECTED -eq 1 ]
     then
         return 1 # some errors has been deteced
     fi
 
-    if [ IS_WARNINGS_DETECTED -eq 1 ]
+    if [ $IS_WARNINGS_DETECTED -eq 1 ]
     then
         return 2 # some warnings has been detected
     fi
@@ -453,7 +454,7 @@ function copy_folder () {
     return 0 # no issues has been detected
 }
 
-SRC_DEVICE_MOUNT_POINT="/home/pi/scripts/rpi-usb-disk-copy" # debug line
-DST_FOLDER_FULL_PATH="/opt/usb-disk-copy" # debug line
+#SRC_DEVICE_MOUNT_POINT="/home/pi/scripts/rpi-usb-disk-copy" # debug line
+#DST_FOLDER_FULL_PATH="/opt/usb-disk-copy" # debug line
 
-copy_folder "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH"
+#./copy_folder "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH"
