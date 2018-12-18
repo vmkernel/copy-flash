@@ -62,7 +62,7 @@ function check_files_collision () {
     DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
         if [ -z "$DST_FOLDER_PATH" ]
     then
-        echo "*** WARNING **** Destination folder doesn't exists. Assuming no collission."
+        echo "*** WARNING **** Destination folder doesn't exists."
         return 0
     fi
     
@@ -71,13 +71,13 @@ function check_files_collision () {
     if [ -z "$DST_FILE_RECORD" ] 
     then # file doesn't exists
 
-        echo "Source file '$SRC_FILE_NAME' doesn't exist on the destination. Assuming no collision."
+        echo "Source file '$SRC_FILE_NAME' doesn't exist on the destination."
         return 0
 
     else # file exists
 
         echo "Destination already has a file with the same name '$SRC_FILE_NAME'."
-        SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
+        SRC_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
         if [ -z "$SRC_FILE_RECORD" ] # something went wrong, can't find source file with the same name
         then 
             echo "*** WARNING *** Unable to get source file information. Assuming collision."
@@ -201,11 +201,15 @@ function check_files_collision () {
         fi
     fi
 
-    echo "Both files are the same by their's date/time and size."
+    echo "Both files are the same by their date, time and size. Will skip the file."
     return 2
 }
 
 # TODO: Fix potential loss of data, when skipping a file (try mkstemp?)
+# TODO: BUG: the function ignores nested folders
+# Source path '/media/sdcard0/DCIM/100MEDIA/YI001602.SEC'
+# Destination path '/media/hdd/Incoming/YI001602.SEC'
+
 function copy_folder () {
     # SUMMARY
     # This function discovers and copies all files from a specified folder to a destination folder
@@ -247,13 +251,6 @@ function copy_folder () {
         return -1
     fi
 
-    # Checking destination folder path
-    if [ -z "$DST_FOLDER_PATH" ]
-    then
-        echo "*** ERROR *** copy_folder: insufficient arguments (expected 2, got 1)."
-        return -1
-    fi
-
     # Checking if the source folder exists
     SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
     if [ -z "$SRC_FOLDER_RECORD" ]
@@ -262,9 +259,24 @@ function copy_folder () {
         return -1
     fi
 
+    # Checking destination folder path
+    if [ -z "$DST_FOLDER_PATH" ]
+    then
+        echo "*** ERROR *** copy_folder: insufficient arguments (expected 2, got 1)."
+        return -1
+    fi
+
+    # Removing trailing slash from destination folder ralative path
+    DST_FOLDER_PATH=${DST_FOLDER_PATH%/}
+    if [ -z "$DST_FOLDER_PATH" ]
+    then
+        echo "*** ERROR *** Unable to remove trailing slash from destination folder path."
+        return -1
+    fi
+
     # Checking if the destiantion folder exists
     DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
-    if [ -z "$DST_FOLDER_PATH" ]
+    if [ -z "$DST_FOLDER_RECORD" ]
     then
         echo "*** WARNING **** Destination folder '$DST_FOLDER_PATH' doesn't exists. Will create."
         mkdir --parents $DST_FOLDER_PATH
@@ -319,8 +331,40 @@ function copy_folder () {
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
 
+        # Extracting relative folder path
+        # /media/sdcard0/DCIM/100MEDIA/YI001601.MP4 -> (root folder/)DCIM/100MEDIA(/file.name)
+        DST_FILE_RELATIVE_PATH=${SRC_FILE_PATH#"$SRC_FOLDER_PATH"} # Extracting destination file ralative path (without source folder name)
+        DST_FOLDER_RELATIVE_PATH=${DST_FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # # Extracting destination folder ralative path (without source folder and file names)
+        DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH%/} # Removing trailing slash from destination folder ralative path
+        DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH#/} # Removing leading slash from destination folder ralative path
+        if [ -z "$DST_FOLDER_RELATIVE_PATH" ]
+        then
+            echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
+            IS_ERRORS_DETECTED=1
+            continue # BUG: Potential loss of data (try mkstemp?)
+        fi
+
+        # Generating destination folder name
+        DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"
+        if [ -z $DST_FOLDER_FULL_PATH ]
+        then
+            echo "*** ERROR *** Unable to generate destianion folder full path from the destination folder root path ($DST_FOLDER_PATH) and the relative path ($DST_FOLDER_RELATIVE_PATH). Will skip this file."
+            IS_ERRORS_DETECTED=1
+            continue # BUG: Potential loss of data (try mkstemp?)
+        fi
+
+        # Making sure that the folder exists
+        mkdir --parents $DST_FOLDER_FULL_PATH
+        DST_FOLDER_FULL_RECORD=$(ls --all "$DST_FOLDER_FULL_PATH" 2> /dev/null)
+        if [ -z "$DST_FOLDER_FULL_RECORD" ]
+        then
+            echo "*** ERROR **** Unable to create the destination folder."
+            IS_ERRORS_DETECTED=1
+            continue # BUG: Potential loss of data (try mkstemp?)
+        fi
+
         # Running collision check
-        check_files_collision "$SRC_FOLDER_PATH" "$DST_FOLDER_PATH" "$SRC_FILE_NAME"
+        check_files_collision "$SRC_FOLDER_PATH" "$DST_FOLDER_FULL_PATH" "$SRC_FILE_NAME"
         EXIT_CODE=$?
 
         # Analyzing collision check's result
@@ -332,7 +376,7 @@ function copy_folder () {
                 IS_NEW_NAME_REQUIRED=0
             ;;
             2)  # Both files are the same
-                echo "Will skip the file."
+                #echo "Will skip the file."
                 IS_SKIP_FILE=1
             ;;
             1)  # Need a new name for the file, because of a collision
@@ -436,8 +480,8 @@ function copy_folder () {
 
         # Calling rsync to copy the file
         echo "Invoking rsync..."
-        echo "Source path '$SRC_FILE_PATH'"
-        echo "Destination path '$DST_FILE_FULL_PATH'"
+        #echo "Source path '$SRC_FILE_PATH'"
+        #echo "Destination path '$DST_FILE_FULL_PATH'"
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]
