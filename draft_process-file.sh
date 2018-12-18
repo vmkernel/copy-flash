@@ -354,8 +354,7 @@ function copy_folder () {
             continue
         fi
 
-        # Generating a brand new name for the file, if required
-        if [ $IS_NEW_NAME_REQUIRED -eq 1 ]
+        if [ $IS_NEW_NAME_REQUIRED -eq 1 ] # Generating a brand new name for the file, if required
         then
             declare SRC_FILE_BASE_NAME   # Base name of the source file
 
@@ -425,10 +424,20 @@ function copy_folder () {
                 IS_ERRORS_DETECTED=1
                 continue # BUG: Potential loss of data (try mkstemp?)
             fi
+        else
+            DST_FILE_FULL_PATH="$DST_FOLDER_PATH/$SRC_FILE_NAME"
+            if [ -z "$DST_FILE_FULL_PATH" ]
+            then
+                echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
+                IS_ERRORS_DETECTED=1
+                continue # BUG: Potential loss of data (try mkstemp?)
+            fi
         fi
 
         # Calling rsync to copy the file
         echo "Invoking rsync..."
+        echo "Source path '$SRC_FILE_PATH'"
+        echo "Destination path '$DST_FILE_FULL_PATH'"
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]
