@@ -25,9 +25,9 @@ function check_files_collision () {
     # USAGE
     #   Check_files_collision <source_folder> <destination_folder> <file_name>
 
-    SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
-    DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
-    SRC_FILE_NAME=$3   # Assuming the third parameter as a source file name
+    local SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
+    local DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
+    local SRC_FILE_NAME=$3   # Assuming the third parameter as a source file name
 
     # Checking source folder path
     if [ -z "$SRC_FOLDER_PATH" ]
@@ -51,7 +51,7 @@ function check_files_collision () {
     fi
 
     # Checking if the source folder exists
-    SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
+    local DST_FILE_FULL_PATHSRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
     if [ -z "$SRC_FOLDER_RECORD" ]
     then
         echo "*** ERROR **** Source folder doesn't exists. Input argument error."
@@ -59,7 +59,7 @@ function check_files_collision () {
     fi
 
     # Checking if the destiantion folder exists
-    DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
+    local DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
         if [ -z "$DST_FOLDER_PATH" ]
     then
         echo "*** WARNING **** Destination folder doesn't exists."
@@ -67,7 +67,7 @@ function check_files_collision () {
     fi
     
     # checking whether a file with the same name exists on the destination
-    DST_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
+    local DST_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
     if [ -z "$DST_FILE_RECORD" ] 
     then # file doesn't exists
 
@@ -78,7 +78,7 @@ function check_files_collision () {
     else # file exists
 
         echo "Destination already has a file with the same name '$SRC_FILE_NAME'."
-        SRC_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
+        local SRC_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
         if [ -z "$SRC_FILE_RECORD" ] # something went wrong, can't find source file with the same name
         then 
             echo "*** WARNING *** Unable to get source file information. Assuming collision."
@@ -90,8 +90,8 @@ function check_files_collision () {
         echo "$DST_FILE_RECORD (destination)"
 
         # Comparing files sizes
-        DST_FILE_SIZE=$(echo "$DST_FILE_RECORD" | awk '{print $5}')
-        SRC_FILE_SIZE=$(echo "$SRC_FILE_RECORD" | awk '{print $5}')
+        local DST_FILE_SIZE=$(echo "$DST_FILE_RECORD" | awk '{print $5}')
+        local SRC_FILE_SIZE=$(echo "$SRC_FILE_RECORD" | awk '{print $5}')
         if [[ -z "$DST_FILE_SIZE" || -z "$SRC_FILE_SIZE" ]]
         then
             echo "*** WARNING *** Unable to get source and/or destination file size. Assuming collision."
@@ -104,8 +104,8 @@ function check_files_collision () {
         fi
 
         # Comparing files years
-        DST_FILE_YEAR=$(echo "$DST_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=1)
-        SRC_FILE_YEAR=$(echo "$SRC_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=1)
+        local DST_FILE_YEAR=$(echo "$DST_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=1)
+        local SRC_FILE_YEAR=$(echo "$SRC_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=1)
         if [[ -z "$DST_FILE_YEAR" || -z "$SRC_FILE_YEAR" ]]
         then
             echo "*** WARNING *** Unable to get source and/or destination file year. Assuming collision."
@@ -118,8 +118,8 @@ function check_files_collision () {
         fi
 
         # Comparing files month
-        DST_FILE_MONTH=$(echo "$DST_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=2)
-        SRC_FILE_MONTH=$(echo "$SRC_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=2)
+        local DST_FILE_MONTH=$(echo "$DST_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=2)
+        local SRC_FILE_MONTH=$(echo "$SRC_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=2)
         if [[ -z "$DST_FILE_MONTH" || -z "$SRC_FILE_MONTH" ]]
         then
             echo "*** WARNING *** Unable to get source and/or destination file month. Assuming collision."
@@ -132,8 +132,8 @@ function check_files_collision () {
         fi
 
         # Comparing files day
-        DST_FILE_DAY=$(echo "$DST_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=3)
-        SRC_FILE_DAY=$(echo "$SRC_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=3)
+        local DST_FILE_DAY=$(echo "$DST_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=3)
+        local SRC_FILE_DAY=$(echo "$SRC_FILE_RECORD" | awk '{print $6}' | cut --delimiter='-' --fields=3)
         if [[ -z "$DST_FILE_DAY" || -z "$SRC_FILE_DAY" ]]
         then
             echo "*** WARNING *** Unable to get source and/or destination file day. Assuming collision."
@@ -146,8 +146,8 @@ function check_files_collision () {
         fi
 
         # Comparing file hours
-        DST_FILE_HOURS=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='1')
-        SRC_FILE_HOURS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='1')
+        local DST_FILE_HOURS=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='1')
+        local SRC_FILE_HOURS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='1')
         if [[ -z "$DST_FILE_HOURS" || -z "$SRC_FILE_HOURS" ]]
         then
             echo "*** WARNING *** Unable to get source and/or destination file hours. Assuming collision."
@@ -160,8 +160,8 @@ function check_files_collision () {
         fi
 
         # Comparing file minutes
-        DST_FILE_MINUTES=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='2')
-        SRC_FILE_MINUTES=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='2')
+        local DST_FILE_MINUTES=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='2')
+        local SRC_FILE_MINUTES=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='2')
         if [[ -z "$DST_FILE_MINUTES" || -z "$SRC_FILE_MINUTES" ]]
         then
             echo "*** WARNING *** Unable to get source and/or destination file minutes. Assuming collision."
@@ -174,8 +174,8 @@ function check_files_collision () {
         fi
 
         # Comparing file seconds 
-        DST_FILE_SECONDS=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='3')
-        SRC_FILE_SECONDS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='3')
+        local DST_FILE_SECONDS=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='3')
+        local SRC_FILE_SECONDS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=1 | cut --delimiter=':' --fields='3')
         if [[ -z "$DST_FILE_SECONDS" || -z "$SRC_FILE_SECONDS" ]]
         then
             echo "*** WARNING *** Unable to get source and/or destination file seconds. Assuming collision."
@@ -188,8 +188,8 @@ function check_files_collision () {
         fi
 
         # Compating file milliseconds (I don't know for sure should it be here or not)
-        DST_FILE_MILLISECONDS=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=2)
-        SRC_FILE_MILLISECONDS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=2)
+        local DST_FILE_MILLISECONDS=$(echo "$DST_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=2)
+        local SRC_FILE_MILLISECONDS=$(echo "$SRC_FILE_RECORD" | awk '{print $7}' | cut --delimiter='.' --fields=2)
         if [[ -z "$DST_FILE_MILLISECONDS" || -z "$SRC_FILE_MILLISECONDS" ]]
         then
             echo "*** WARNING *** Unable to get source and/or destination file milliseconds. Assuming collision."
@@ -234,17 +234,16 @@ function copy_folder () {
     #   copy_folder <source_folder> <destiantion_folder>
 
     # Assuming the first parameter as a source folder
-    declare -r SRC_FOLDER_PATH=$1 
+    local SRC_FOLDER_PATH=$1 
     # Assuming the second parameter as a destination folder
-    declare -r DST_FOLDER_PATH_ARGUMENT=$2
-    DST_FOLDER_PATH=$2
+    local DST_FOLDER_PATH=$2
 
     # Flag to decide which exit code should return the function upon completion
-    declare -i IS_ERRORS_DETECTED=0     
+    local declare -i IS_ERRORS_DETECTED=0     
     # Flag to decide which exit code should return the function upon completion
-    declare -i IS_WARNINGS_DETECTED=0
+    local declare -i IS_WARNINGS_DETECTED=0
     # Maximum value of file name counter
-    declare -i FILE_NAME_COUNTER_MAX=1000 
+    local declare -i FILE_NAME_COUNTER_MAX=1000 
 
     # Checking source folder path
     if [ -z "$SRC_FOLDER_PATH" ]
@@ -262,14 +261,14 @@ function copy_folder () {
     fi
 
     # Checking destination folder path
-    if [ -z "$DST_FOLDER_PATH_ARGUMENT" ]
+    if [ -z "$DST_FOLDER_PATH" ]
     then
         echo "*** ERROR *** copy_folder: insufficient arguments (expected 2, got 1)."
         return -1
     fi
 
     # Removing trailing slash from destination folder ralative path
-    declare -r DST_FOLDER_PATH=${DST_FOLDER_PATH%/}
+    DST_FOLDER_PATH=${DST_FOLDER_PATH%/}
     if [ -z "$DST_FOLDER_PATH" ]
     then
         echo "*** ERROR *** Unable to remove trailing slash from destination folder path."
@@ -277,7 +276,7 @@ function copy_folder () {
     fi
 
     # Checking if the destiantion folder exists
-    DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
+    local DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
     if [ -z "$DST_FOLDER_RECORD" ]
     then
         echo "*** WARNING **** Destination folder '$DST_FOLDER_PATH' doesn't exists. Will create."
@@ -293,7 +292,7 @@ function copy_folder () {
     # Discoverying files in the source folder
     echo "Discoverying files in the source folder '$SRC_FOLDER_PATH'..."
     IFS=$'\n' # Setting default delimeter to new-line symbol
-    SRC_FILES_LIST=( $(find $SRC_FOLDER_PATH -type f,l) )
+    local SRC_FILES_LIST=( $(find $SRC_FOLDER_PATH -type f,l) )
     if [ ${#SRC_FILES_LIST[*]} -le 0 ]
     then
         echo "*** WARNING *** No files has been found in the source directory."
@@ -317,7 +316,7 @@ function copy_folder () {
         echo "Processing file '$SRC_FILE_PATH'"
 
         # Checking if the source file exists
-        SRC_FILE_RECORD=$(ls --all "$SRC_FILE_PATH" 2> /dev/null)
+        local SRC_FILE_RECORD=$(ls --all "$SRC_FILE_PATH" 2> /dev/null)
         if [ -z "$SRC_FILE_RECORD" ]
         then
             echo "*** ERROR **** Unable to find the source file '$SRC_FILE_PATH'. Will skip this one."
@@ -326,7 +325,7 @@ function copy_folder () {
         fi
 
         # Extracting file name from the file path
-        SRC_FILE_NAME=$(basename $SRC_FILE_PATH)
+        local SRC_FILE_NAME=$(basename $SRC_FILE_PATH)
         if [ -z "$SRC_FILE_NAME" ]
         then 
             echo "*** ERROR *** Unable to extract file name from the file path. Will skip this file."
@@ -337,14 +336,14 @@ function copy_folder () {
 
         # Extracting relative folder path
         # /media/sdcard0/DCIM/100MEDIA/YI001601.MP4 -> (root folder/)DCIM/100MEDIA(/file.name)
-        DST_FILE_RELATIVE_PATH=${SRC_FILE_PATH#"$SRC_FOLDER_PATH"} # Extracting destination file ralative path (without source folder name)
-        echo "Destination file relative path: $DST_FILE_RELATIVE_PATH"
-        DST_FOLDER_RELATIVE_PATH=${DST_FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # # Extracting destination folder ralative path (without source folder and file names)
-        echo "Destination folder relative path (w/o source folder name): $DST_FOLDER_RELATIVE_PATH"
+        local DST_FILE_RELATIVE_PATH=${SRC_FILE_PATH#"$SRC_FOLDER_PATH"} # Extracting destination file ralative path (without source folder name)
+        #echo "Destination file relative path: $DST_FILE_RELATIVE_PATH"
+        local DST_FOLDER_RELATIVE_PATH=${DST_FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # # Extracting destination folder ralative path (without source folder and file names)
+        #echo "Destination folder relative path (w/o source folder name): $DST_FOLDER_RELATIVE_PATH"
         DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH%/} # Removing trailing slash from destination folder ralative path
-        echo "Destination folder relative path (w/o trailing slash): $DST_FOLDER_RELATIVE_PATH"
+        #echo "Destination folder relative path (w/o trailing slash): $DST_FOLDER_RELATIVE_PATH"
         DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH#/} # Removing leading slash from destination folder ralative path
-        echo "Destiantion folder relative path (w/o leading slash): $DST_FOLDER_RELATIVE_PATH"
+        #echo "Destiantion folder relative path (w/o leading slash): $DST_FOLDER_RELATIVE_PATH"
         if [ -z "$DST_FOLDER_RELATIVE_PATH" ]
         then
             echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
@@ -354,7 +353,7 @@ function copy_folder () {
         echo "Destination folder relative path: $DST_FOLDER_RELATIVE_PATH"
         echo "Destination folder root path: $DST_FOLDER_PATH"
         # Generating destination folder name
-        DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"
+        local DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"
         if [ -z $DST_FOLDER_FULL_PATH ]
         then
             echo "*** ERROR *** Unable to generate destianion folder full path from the destination folder root path ($DST_FOLDER_PATH) and the relative path ($DST_FOLDER_RELATIVE_PATH). Will skip this file."
@@ -365,7 +364,7 @@ function copy_folder () {
 
         # Making sure that the folder exists
         mkdir --parents $DST_FOLDER_FULL_PATH
-        DST_FOLDER_FULL_RECORD=$(ls --all "$DST_FOLDER_FULL_PATH" 2> /dev/null)
+        local DST_FOLDER_FULL_RECORD=$(ls --all "$DST_FOLDER_FULL_PATH" 2> /dev/null)
         if [ -z "$DST_FOLDER_FULL_RECORD" ]
         then
             echo "*** ERROR **** Unable to create the destination folder."
@@ -378,8 +377,8 @@ function copy_folder () {
         EXIT_CODE=$?
 
         # Analyzing collision check's result
-        declare -i IS_NEW_NAME_REQUIRED=1 # New name is required for the file
-        declare -i IS_SKIP_FILE=0         # Both files are the same, will skip safely
+        local declare -i IS_NEW_NAME_REQUIRED=1 # New name is required for the file
+        local declare -i IS_SKIP_FILE=0         # Both files are the same, will skip safely
         case $EXIT_CODE in
             0)  # No collisions, no file with the same name at the destination
                 echo "Will copy the file to its destination with the original name."
@@ -408,12 +407,13 @@ function copy_folder () {
             continue
         fi
 
+        local DST_FILE_FULL_PATH=""
         if [ $IS_NEW_NAME_REQUIRED -eq 1 ] # Generating a brand new name for the file, if required
         then
-            declare SRC_FILE_BASE_NAME   # Base name of the source file
+            local SRC_FILE_BASE_NAME   # Base name of the source file
 
             # Extracting base file name and extension from the file name
-            SRC_FILE_EXT="${SRC_FILE_NAME##*.}"
+            local SRC_FILE_EXT="${SRC_FILE_NAME##*.}"
             if [ -z "$SRC_FILE_EXT" ]
             then
                 SRC_FILE_BASE_NAME=$SRC_FILE_NAME
@@ -429,9 +429,9 @@ function copy_folder () {
             fi
 
             # New file name generation algorithm (e.g.: <original_file_name><N>.<ext>)
-            declare DST_FILE_NAME
-            declare -i IS_NAME_GEN_ERROR=0
-            declare -i IS_NEW_NAME_FOUND=0
+            local DST_FILE_NAME
+            local declare -i IS_NAME_GEN_ERROR=0
+            local declare -i IS_NEW_NAME_FOUND=0
             for FILE_NAME_COUNTER in `seq 1 $FILE_NAME_COUNTER_MAX`;
             do
                 # Generating new file name
@@ -457,7 +457,7 @@ function copy_folder () {
                 fi
 
                 # Checking if a file with the same (new) name exists at the destination folder
-                DST_FILE_RECORD=$(ls --all $DST_FILE_FULL_PATH 2> /dev/null)
+                local DST_FILE_RECORD=$(ls --all $DST_FILE_FULL_PATH 2> /dev/null)
                 if [ -z $DST_FILE_RECORD ]
                 then # Destination file with the new name is not found, will continue with the name
                     echo "Found first available name: '$DST_FILE_NAME'"
