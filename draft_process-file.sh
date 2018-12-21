@@ -491,7 +491,7 @@ function copy_folder () {
         # Calling rsync to copy the file
         #echo "Invoking rsync..."
         #echo "Source path '$SRC_FILE_PATH'"
-        #echo "Destination path '$DST_FILE_FULL_PATH'"
+        echo "Destination path '$DST_FILE_FULL_PATH'"
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]
