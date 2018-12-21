@@ -352,6 +352,7 @@ function copy_folder () {
         #echo "Destination folder root path: $DST_FOLDER_ROOT_PATH"
 
         # Generating source and destination folder full paths
+        # TODO: Remove trailing slashes for source directory
         local SRC_FOLDER_FULL_PATH=""
         local DST_FOLDER_FULL_PATH=""
         if [ -z "$FOLDER_RELATIVE_PATH" ]
@@ -395,6 +396,7 @@ function copy_folder () {
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
 
+        # TODO: run the collision check for each new file with counter in its name
         # Running collision check
         check_files_collision "$SRC_FOLDER_FULL_PATH" "$DST_FOLDER_FULL_PATH" "$SRC_FILE_NAME"
         EXIT_CODE=$?
