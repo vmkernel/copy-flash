@@ -331,6 +331,7 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
+        echo "File name: '$SRC_FILE_NAME'"
 
         # Extracting relative folder path
         # /media/sdcard0/DCIM/100MEDIA/YI001601.MP4 -> (root folder/)DCIM/100MEDIA(/file.name)
@@ -344,7 +345,7 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        echo "Child folder(s) relative path: $DST_FOLDER_RELATIVE_PATH"
+        echo "Nested folder relative path: $DST_FOLDER_RELATIVE_PATH"
 
         # Generating destination folder name
         DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"
@@ -354,6 +355,7 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
+        echo "Destination folder full path: $DST_FOLDER_FULL_PATH"
 
         # Making sure that the folder exists
         mkdir --parents $DST_FOLDER_FULL_PATH
