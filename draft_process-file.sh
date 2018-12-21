@@ -71,7 +71,8 @@ function check_files_collision () {
     if [ -z "$DST_FILE_RECORD" ] 
     then # file doesn't exists
 
-        echo "Source file '$SRC_FILE_NAME' doesn't exist on the destination."
+        #echo "Source file '$SRC_FILE_NAME' doesn't exist on the destination."
+        echo "Source file doesn't exist on the destination."
         return 0
 
     else # file exists
@@ -336,9 +337,13 @@ function copy_folder () {
         # Extracting relative folder path
         # /media/sdcard0/DCIM/100MEDIA/YI001601.MP4 -> (root folder/)DCIM/100MEDIA(/file.name)
         DST_FILE_RELATIVE_PATH=${SRC_FILE_PATH#"$SRC_FOLDER_PATH"} # Extracting destination file ralative path (without source folder name)
+        echo "Destination file relative path: $DST_FILE_RELATIVE_PATH"
         DST_FOLDER_RELATIVE_PATH=${DST_FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # # Extracting destination folder ralative path (without source folder and file names)
+        echo "Destination folder relative path (w/o source folder name): $DST_FOLDER_RELATIVE_PATH"
         DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH%/} # Removing trailing slash from destination folder ralative path
+        echo "Destination folder relative path (w/o trailing slash: $DST_FOLDER_RELATIVE_PATH"
         DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH#/} # Removing leading slash from destination folder ralative path
+        echo "Destiantion folder relative path (w/o leading slash: $DST_FOLDER_RELATIVE_PATH"
         if [ -z "$DST_FOLDER_RELATIVE_PATH" ]
         then
             echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
@@ -483,9 +488,9 @@ function copy_folder () {
         fi
 
         # Calling rsync to copy the file
-        echo "Invoking rsync..."
-        echo "Source path '$SRC_FILE_PATH'"
-        echo "Destination path '$DST_FILE_FULL_PATH'"
+        #echo "Invoking rsync..."
+        #echo "Source path '$SRC_FILE_PATH'"
+        #echo "Destination path '$DST_FILE_FULL_PATH'"
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]
