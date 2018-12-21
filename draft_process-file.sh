@@ -51,7 +51,7 @@ function check_files_collision () {
     fi
 
     # Checking if the source folder exists
-    local DST_FILE_FULL_PATHSRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
+    local SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
     if [ -z "$SRC_FOLDER_RECORD" ]
     then
         echo "*** ERROR **** Source folder doesn't exists. Input argument error."
@@ -78,7 +78,7 @@ function check_files_collision () {
     else # file exists
 
         echo "Destination already has a file with the same name '$SRC_FILE_NAME'."
-        local SRC_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
+        local SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
         if [ -z "$SRC_FILE_RECORD" ] # something went wrong, can't find source file with the same name
         then 
             echo "*** WARNING *** Unable to get source file information. Assuming collision."
