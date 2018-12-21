@@ -239,11 +239,11 @@ function copy_folder () {
     local DST_FOLDER_PATH=$2
 
     # Flag to decide which exit code should return the function upon completion
-    local declare -i IS_ERRORS_DETECTED=0     
+    local IS_ERRORS_DETECTED=0     
     # Flag to decide which exit code should return the function upon completion
-    local declare -i IS_WARNINGS_DETECTED=0
+    local IS_WARNINGS_DETECTED=0
     # Maximum value of file name counter
-    local declare -i FILE_NAME_COUNTER_MAX=1000 
+    local FILE_NAME_COUNTER_MAX=1000 
 
     # Checking source folder path
     if [ -z "$SRC_FOLDER_PATH" ]
@@ -377,8 +377,8 @@ function copy_folder () {
         EXIT_CODE=$?
 
         # Analyzing collision check's result
-        local declare -i IS_NEW_NAME_REQUIRED=1 # New name is required for the file
-        local declare -i IS_SKIP_FILE=0         # Both files are the same, will skip safely
+        local IS_NEW_NAME_REQUIRED=1 # New name is required for the file
+        local IS_SKIP_FILE=0         # Both files are the same, will skip safely
         case $EXIT_CODE in
             0)  # No collisions, no file with the same name at the destination
                 echo "Will copy the file to its destination with the original name."
@@ -430,8 +430,8 @@ function copy_folder () {
 
             # New file name generation algorithm (e.g.: <original_file_name><N>.<ext>)
             local DST_FILE_NAME
-            local declare -i IS_NAME_GEN_ERROR=0
-            local declare -i IS_NEW_NAME_FOUND=0
+            local IS_NAME_GEN_ERROR=0
+            local IS_NEW_NAME_FOUND=0
             for FILE_NAME_COUNTER in `seq 1 $FILE_NAME_COUNTER_MAX`;
             do
                 # Generating new file name
