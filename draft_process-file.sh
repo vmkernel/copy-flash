@@ -234,8 +234,9 @@ function copy_folder () {
     #   copy_folder <source_folder> <destiantion_folder>
 
     # Assuming the first parameter as a source folder
-    SRC_FOLDER_PATH=$1 
+    declare -r SRC_FOLDER_PATH=$1 
     # Assuming the second parameter as a destination folder
+    declare -r DST_FOLDER_PATH_ARGUMENT=$2
     DST_FOLDER_PATH=$2
 
     # Flag to decide which exit code should return the function upon completion
@@ -261,14 +262,14 @@ function copy_folder () {
     fi
 
     # Checking destination folder path
-    if [ -z "$DST_FOLDER_PATH" ]
+    if [ -z "$DST_FOLDER_PATH_ARGUMENT" ]
     then
         echo "*** ERROR *** copy_folder: insufficient arguments (expected 2, got 1)."
         return -1
     fi
 
     # Removing trailing slash from destination folder ralative path
-    DST_FOLDER_PATH=${DST_FOLDER_PATH%/}
+    declare -r DST_FOLDER_PATH=${DST_FOLDER_PATH%/}
     if [ -z "$DST_FOLDER_PATH" ]
     then
         echo "*** ERROR *** Unable to remove trailing slash from destination folder path."
@@ -350,7 +351,7 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        echo "Nested folder relative path: $DST_FOLDER_RELATIVE_PATH"
+        echo "Destination folder relative path: $DST_FOLDER_RELATIVE_PATH"
         echo "Destination folder root path: $DST_FOLDER_PATH"
         # Generating destination folder name
         DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"
