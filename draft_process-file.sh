@@ -72,7 +72,7 @@ function check_files_collision () {
     then # file doesn't exists
 
         #echo "Source file '$SRC_FILE_NAME' doesn't exist on the destination."
-        echo "Source file doesn't exist on the destination."
+        #echo "Source file doesn't exist on the destination."
         return 0
 
     else # file exists
@@ -332,28 +332,38 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        echo "File name: '$SRC_FILE_NAME'"
+        #echo "File name: '$SRC_FILE_NAME'"
 
         # Extracting relative folder path
         # /media/sdcard0/DCIM/100MEDIA/YI001601.MP4 -> (root folder/)DCIM/100MEDIA(/file.name)
         local DST_FILE_RELATIVE_PATH=${SRC_FILE_PATH#"$SRC_FOLDER_PATH"} # Extracting destination file ralative path (without source folder name)
         #echo "Destination file relative path: $DST_FILE_RELATIVE_PATH"
+
         local DST_FOLDER_RELATIVE_PATH=${DST_FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # # Extracting destination folder ralative path (without source folder and file names)
         #echo "Destination folder relative path (w/o source folder name): $DST_FOLDER_RELATIVE_PATH"
+
         DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH%/} # Removing trailing slash from destination folder ralative path
         #echo "Destination folder relative path (w/o trailing slash): $DST_FOLDER_RELATIVE_PATH"
+
         DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH#/} # Removing leading slash from destination folder ralative path
         #echo "Destiantion folder relative path (w/o leading slash): $DST_FOLDER_RELATIVE_PATH"
+
+        #echo "Destination folder relative path: $DST_FOLDER_RELATIVE_PATH"
+        #echo "Destination folder root path: $DST_FOLDER_PATH"
+
+        # Generating destination folder path
+        local DST_FOLDER_FULL_PATH=""
         if [ -z "$DST_FOLDER_RELATIVE_PATH" ]
         then
-            echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
-            IS_ERRORS_DETECTED=1
-            continue # BUG: Potential loss of data (try mkstemp?)
+            # Assuming the file in the root folder
+            DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH"
+            #echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
+            #IS_ERRORS_DETECTED=1
+            #continue # BUG: Potential loss of data (try mkstemp?)
+        else
+            DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"    
         fi
-        echo "Destination folder relative path: $DST_FOLDER_RELATIVE_PATH"
-        echo "Destination folder root path: $DST_FOLDER_PATH"
-        # Generating destination folder name
-        local DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"
+        
         if [ -z $DST_FOLDER_FULL_PATH ]
         then
             echo "*** ERROR *** Unable to generate destianion folder full path from the destination folder root path ($DST_FOLDER_PATH) and the relative path ($DST_FOLDER_RELATIVE_PATH). Will skip this file."
@@ -381,7 +391,7 @@ function copy_folder () {
         local IS_SKIP_FILE=0         # Both files are the same, will skip safely
         case $EXIT_CODE in
             0)  # No collisions, no file with the same name at the destination
-                echo "Will copy the file to its destination with the original name."
+                echo "No collision has been detected. Will copy the file to its destination with the original name."
                 IS_NEW_NAME_REQUIRED=0
             ;;
             2)  # Both files are the same
