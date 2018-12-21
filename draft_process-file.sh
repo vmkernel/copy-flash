@@ -234,9 +234,9 @@ function copy_folder () {
     #   copy_folder <source_folder> <destiantion_folder>
 
     # Assuming the first parameter as a source folder
-    local SRC_FOLDER_PATH=$1 
+    local SRC_FOLDER_ROOT_PATH=$1 
     # Assuming the second parameter as a destination folder
-    local DST_FOLDER_PATH=$2
+    local DST_FOLDER_ROOT_PATH=$2
 
     # Flag to decide which exit code should return the function upon completion
     local IS_ERRORS_DETECTED=0     
@@ -246,14 +246,14 @@ function copy_folder () {
     local FILE_NAME_COUNTER_MAX=1000 
 
     # Checking source folder path
-    if [ -z "$SRC_FOLDER_PATH" ]
+    if [ -z "$SRC_FOLDER_ROOT_PATH" ]
     then
         echo "*** ERROR *** copy_folder: insufficient arguments (expected 2, got 0)."
         return -1
     fi
 
     # Checking if the source folder exists
-    SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
+    SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_ROOT_PATH" 2> /dev/null)
     if [ -z "$SRC_FOLDER_RECORD" ]
     then
         echo "*** ERROR **** Source folder doesn't exists. Input argument error."
@@ -261,27 +261,27 @@ function copy_folder () {
     fi
 
     # Checking destination folder path
-    if [ -z "$DST_FOLDER_PATH" ]
+    if [ -z "$DST_FOLDER_ROOT_PATH" ]
     then
         echo "*** ERROR *** copy_folder: insufficient arguments (expected 2, got 1)."
         return -1
     fi
 
     # Removing trailing slash from destination folder ralative path
-    DST_FOLDER_PATH=${DST_FOLDER_PATH%/}
-    if [ -z "$DST_FOLDER_PATH" ]
+    DST_FOLDER_ROOT_PATH=${DST_FOLDER_ROOT_PATH%/}
+    if [ -z "$DST_FOLDER_ROOT_PATH" ]
     then
         echo "*** ERROR *** Unable to remove trailing slash from destination folder path."
         return -1
     fi
 
     # Checking if the destiantion folder exists
-    local DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
+    local DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_ROOT_PATH" 2> /dev/null)
     if [ -z "$DST_FOLDER_RECORD" ]
     then
-        echo "*** WARNING **** Destination folder '$DST_FOLDER_PATH' doesn't exists. Will create."
-        mkdir --parents $DST_FOLDER_PATH
-        DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
+        echo "*** WARNING **** Destination folder '$DST_FOLDER_ROOT_PATH' doesn't exists. Will create."
+        mkdir --parents $DST_FOLDER_ROOT_PATH
+        DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_ROOT_PATH" 2> /dev/null)
         if [ -z "$DST_FOLDER_RECORD" ]
         then
             echo "*** ERROR **** Unable to create the destination folder."
@@ -290,9 +290,9 @@ function copy_folder () {
     fi
 
     # Discoverying files in the source folder
-    echo "Discoverying files in the source folder '$SRC_FOLDER_PATH'..."
+    echo "Discoverying files in the source folder '$SRC_FOLDER_ROOT_PATH'..."
     IFS=$'\n' # Setting default delimeter to new-line symbol
-    local SRC_FILES_LIST=( $(find $SRC_FOLDER_PATH -type f,l) )
+    local SRC_FILES_LIST=( $(find $SRC_FOLDER_ROOT_PATH -type f,l) )
     if [ ${#SRC_FILES_LIST[*]} -le 0 ]
     then
         echo "*** WARNING *** No files has been found in the source directory."
@@ -336,43 +336,56 @@ function copy_folder () {
 
         # Extracting relative folder path
         # /media/sdcard0/DCIM/100MEDIA/YI001601.MP4 -> (root folder/)DCIM/100MEDIA(/file.name)
-        local DST_FILE_RELATIVE_PATH=${SRC_FILE_PATH#"$SRC_FOLDER_PATH"} # Extracting destination file ralative path (without source folder name)
-        #echo "Destination file relative path: $DST_FILE_RELATIVE_PATH"
+        local FILE_RELATIVE_PATH=${SRC_FILE_PATH#"$SRC_FOLDER_ROOT_PATH"} # Extracting destination file ralative path (without source folder name)
+        #echo "Destination file relative path: $FILE_RELATIVE_PATH"
 
-        local DST_FOLDER_RELATIVE_PATH=${DST_FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # # Extracting destination folder ralative path (without source folder and file names)
-        #echo "Destination folder relative path (w/o source folder name): $DST_FOLDER_RELATIVE_PATH"
+        local FOLDER_RELATIVE_PATH=${FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # # Extracting destination folder ralative path (without source folder and file names)
+        #echo "Destination folder relative path (w/o source folder name): $FOLDER_RELATIVE_PATH"
 
-        DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH%/} # Removing trailing slash from destination folder ralative path
-        #echo "Destination folder relative path (w/o trailing slash): $DST_FOLDER_RELATIVE_PATH"
+        FOLDER_RELATIVE_PATH=${FOLDER_RELATIVE_PATH%/} # Removing trailing slash from destination folder ralative path
+        #echo "Destination folder relative path (w/o trailing slash): $FOLDER_RELATIVE_PATH"
 
-        DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH#/} # Removing leading slash from destination folder ralative path
-        #echo "Destiantion folder relative path (w/o leading slash): $DST_FOLDER_RELATIVE_PATH"
+        FOLDER_RELATIVE_PATH=${FOLDER_RELATIVE_PATH#/} # Removing leading slash from destination folder ralative path
+        #echo "Destiantion folder relative path (w/o leading slash): $FOLDER_RELATIVE_PATH"
 
-        #echo "Destination folder relative path: $DST_FOLDER_RELATIVE_PATH"
-        #echo "Destination folder root path: $DST_FOLDER_PATH"
+        #echo "Destination folder relative path: $FOLDER_RELATIVE_PATH"
+        #echo "Destination folder root path: $DST_FOLDER_ROOT_PATH"
 
-        # Generating destination folder path
+        # Generating source and destination folder full paths
+        local SRC_FOLDER_FULL_PATH=""
         local DST_FOLDER_FULL_PATH=""
-        if [ -z "$DST_FOLDER_RELATIVE_PATH" ]
+        if [ -z "$FOLDER_RELATIVE_PATH" ]
         then
             # Assuming the file in the root folder
-            DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH"
+            SRC_FOLDER_FULL_PATH="$SRC_FOLDER_ROOT_PATH"
+            DST_FOLDER_FULL_PATH="$DST_FOLDER_ROOT_PATH"
             #echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
             #IS_ERRORS_DETECTED=1
             #continue # BUG: Potential loss of data (try mkstemp?)
         else
-            DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"    
+            SRC_FOLDER_FULL_PATH="$SRC_FOLDER_ROOT_PATH/$FOLDER_RELATIVE_PATH"
+            DST_FOLDER_FULL_PATH="$DST_FOLDER_ROOT_PATH/$FOLDER_RELATIVE_PATH"
         fi
         
+        # Checking the generated source folder path
+        if [ -z $SRC_FOLDER_FULL_PATH ]
+        then
+            echo "*** ERROR *** Unable to generate source folder full path from the source folder root path ($SRC_FOLDER_FULL_PATH) and the relative path ($FOLDER_RELATIVE_PATH). Will skip this file."
+            IS_ERRORS_DETECTED=1
+            continue # BUG: Potential loss of data (try mkstemp?)
+        fi
+        echo "Source folder full path: $SRC_FOLDER_FULL_PATH"
+
+        # Checking the generated destination folder path
         if [ -z $DST_FOLDER_FULL_PATH ]
         then
-            echo "*** ERROR *** Unable to generate destianion folder full path from the destination folder root path ($DST_FOLDER_PATH) and the relative path ($DST_FOLDER_RELATIVE_PATH). Will skip this file."
+            echo "*** ERROR *** Unable to generate destianion folder full path from the destination folder root path ($DST_FOLDER_ROOT_PATH) and the relative path ($FOLDER_RELATIVE_PATH). Will skip this file."
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
         echo "Destination folder full path: $DST_FOLDER_FULL_PATH"
 
-        # Making sure that the folder exists
+        # Making sure that the destination folder exists
         mkdir --parents $DST_FOLDER_FULL_PATH
         local DST_FOLDER_FULL_RECORD=$(ls --all "$DST_FOLDER_FULL_PATH" 2> /dev/null)
         if [ -z "$DST_FOLDER_FULL_RECORD" ]
@@ -383,7 +396,7 @@ function copy_folder () {
         fi
 
         # Running collision check
-        check_files_collision "$SRC_FOLDER_PATH" "$DST_FOLDER_FULL_PATH" "$SRC_FILE_NAME"
+        check_files_collision "$SRC_FOLDER_FULL_PATH" "$DST_FOLDER_FULL_PATH" "$SRC_FILE_NAME"
         EXIT_CODE=$?
 
         # Analyzing collision check's result
