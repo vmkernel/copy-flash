@@ -448,7 +448,7 @@ function copy_folder () {
                 fi
 
                 # Generating new file full path
-                DST_FILE_FULL_PATH="$DST_FOLDER_PATH/$DST_FILE_NAME"
+                DST_FILE_FULL_PATH="$DST_FOLDER_FULL_PATH/$DST_FILE_NAME"
                 if [ -z "$DST_FILE_FULL_PATH" ]
                 then
                     echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
@@ -479,7 +479,7 @@ function copy_folder () {
                 continue # BUG: Potential loss of data (try mkstemp?)
             fi
         else
-            DST_FILE_FULL_PATH="$DST_FOLDER_PATH/$SRC_FILE_NAME"
+            DST_FILE_FULL_PATH="$DST_FOLDER_FULL_PATH/$SRC_FILE_NAME"
             if [ -z "$DST_FILE_FULL_PATH" ]
             then
                 echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
