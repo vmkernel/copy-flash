@@ -302,10 +302,8 @@ function copy_folder () {
     fi
 
     # Processing each of the discovered files
-    local SRC_FILE_COUNTER=0
     for SRC_FILE_PATH in "${SRC_FILES_LIST[@]}"
     do
-        local SRC_FILE_COUNTER+=1
         # Checking for an empty string
         if [ -z "$SRC_FILE_PATH" ]
         then
@@ -315,8 +313,7 @@ function copy_folder () {
         fi
 
         echo ""
-        echo "Processing file $SRC_FILE_COUNTER of ${#SRC_FILES_LIST[*]}..."
-        echo "Source file path: $SRC_FILE_PATH"
+        echo "Processing file '$SRC_FILE_PATH'"
 
         # Checking if the source file exists
         local SRC_FILE_RECORD=$(ls --all "$SRC_FILE_PATH" 2> /dev/null)
@@ -335,7 +332,7 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        #echo "File name: '$SRC_FILE_NAME'"
+        echo "File name: '$SRC_FILE_NAME'"
 
         # Extracting relative folder path
         # /media/sdcard0/DCIM/100MEDIA/YI001601.MP4 -> (root folder/)DCIM/100MEDIA(/file.name)
@@ -347,27 +344,23 @@ function copy_folder () {
         #echo "Destination folder relative path (w/o trailing slash): $DST_FOLDER_RELATIVE_PATH"
         DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH#/} # Removing leading slash from destination folder ralative path
         #echo "Destiantion folder relative path (w/o leading slash): $DST_FOLDER_RELATIVE_PATH"
-        
-        # Generating destination folder name
-        local DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH"
         if [ -z "$DST_FOLDER_RELATIVE_PATH" ]
         then
-            echo "No relative path detected. Assuming that the file is located in the root folder."
-            #IS_ERRORS_DETECTED=1
-            #continue # BUG: Potential loss of data (try mkstemp?)
-        else
-            DST_FOLDER_FULL_PATH+="/$DST_FOLDER_RELATIVE_PATH"
+            echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
+            IS_ERRORS_DETECTED=1
+            continue # BUG: Potential loss of data (try mkstemp?)
         fi
-
+        echo "Destination folder relative path: $DST_FOLDER_RELATIVE_PATH"
+        echo "Destination folder root path: $DST_FOLDER_PATH"
+        # Generating destination folder name
+        local DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"
         if [ -z $DST_FOLDER_FULL_PATH ]
         then
             echo "*** ERROR *** Unable to generate destianion folder full path from the destination folder root path ($DST_FOLDER_PATH) and the relative path ($DST_FOLDER_RELATIVE_PATH). Will skip this file."
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        #echo "Destination relative path: $DST_FOLDER_RELATIVE_PATH"
-        #echo "Destination root path: $DST_FOLDER_PATH"
-        echo "Destination folder: $DST_FOLDER_FULL_PATH"
+        echo "Destination folder full path: $DST_FOLDER_FULL_PATH"
 
         # Making sure that the folder exists
         mkdir --parents $DST_FOLDER_FULL_PATH
@@ -497,8 +490,8 @@ function copy_folder () {
 
         # Calling rsync to copy the file
         #echo "Invoking rsync..."
-        #echo "Source path: $SRC_FILE_PATH"
-        echo "Destination path: $DST_FILE_FULL_PATH"
+        #echo "Source path '$SRC_FILE_PATH'"
+        #echo "Destination path '$DST_FILE_FULL_PATH'"
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]
