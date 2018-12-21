@@ -289,6 +289,7 @@ function copy_folder () {
     fi
 
     # Discoverying files in the source folder
+    echo "Discoverying files in the source folder '$SRC_FOLDER_PATH'..."
     IFS=$'\n' # Setting default delimeter to new-line symbol
     SRC_FILES_LIST=( $(find $SRC_FOLDER_PATH -type f,l) )
     if [ ${#SRC_FILES_LIST[*]} -le 0 ]
@@ -343,6 +344,7 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
+        echo "Child folder(s) relative path: $DST_FOLDER_RELATIVE_PATH"
 
         # Generating destination folder name
         DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"
@@ -480,8 +482,8 @@ function copy_folder () {
 
         # Calling rsync to copy the file
         echo "Invoking rsync..."
-        #echo "Source path '$SRC_FILE_PATH'"
-        #echo "Destination path '$DST_FILE_FULL_PATH'"
+        echo "Source path '$SRC_FILE_PATH'"
+        echo "Destination path '$DST_FILE_FULL_PATH'"
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]
