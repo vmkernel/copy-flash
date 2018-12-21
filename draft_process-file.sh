@@ -341,9 +341,9 @@ function copy_folder () {
         DST_FOLDER_RELATIVE_PATH=${DST_FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # # Extracting destination folder ralative path (without source folder and file names)
         echo "Destination folder relative path (w/o source folder name): $DST_FOLDER_RELATIVE_PATH"
         DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH%/} # Removing trailing slash from destination folder ralative path
-        echo "Destination folder relative path (w/o trailing slash: $DST_FOLDER_RELATIVE_PATH"
+        echo "Destination folder relative path (w/o trailing slash): $DST_FOLDER_RELATIVE_PATH"
         DST_FOLDER_RELATIVE_PATH=${DST_FOLDER_RELATIVE_PATH#/} # Removing leading slash from destination folder ralative path
-        echo "Destiantion folder relative path (w/o leading slash: $DST_FOLDER_RELATIVE_PATH"
+        echo "Destiantion folder relative path (w/o leading slash): $DST_FOLDER_RELATIVE_PATH"
         if [ -z "$DST_FOLDER_RELATIVE_PATH" ]
         then
             echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
@@ -351,7 +351,7 @@ function copy_folder () {
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
         echo "Nested folder relative path: $DST_FOLDER_RELATIVE_PATH"
-
+        echo "Destination folder root path: $DST_FOLDER_PATH"
         # Generating destination folder name
         DST_FOLDER_FULL_PATH="$DST_FOLDER_PATH/$DST_FOLDER_RELATIVE_PATH"
         if [ -z $DST_FOLDER_FULL_PATH ]
