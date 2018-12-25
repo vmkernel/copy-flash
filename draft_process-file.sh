@@ -420,7 +420,7 @@ function copy_folder () {
                 echo "An unknown internal error has occured in collisions detection mechanism. Will copy the file with a new name."
                 IS_WARNINGS_DETECTED=1
             ;;
-            *)  # Internal error, unsopportex exit code, assuming that new name is required
+            *)  # Internal error, unsupported exit code, assuming that new name is required
                 echo "An internal error has occured in collisions detection mechanism: got unsupported exit code ($EXIT_CODE). Will copy the file with a new name."
                 IS_WARNINGS_DETECTED=1
             ;;
@@ -481,15 +481,37 @@ function copy_folder () {
                     break
                 fi
 
-                # Checking if a file with the same (new) name exists at the destination folder
-                local DST_FILE_RECORD=$(ls --all $DST_FILE_FULL_PATH 2> /dev/null)
-                if [ -z $DST_FILE_RECORD ]
-                then # Destination file with the new name is not found, will continue with the name
-                    echo "Found first available name: '$DST_FILE_NAME'"
-                    IS_NEW_NAME_FOUND=1
-                    break
-                fi
+                # Checking if a file with the same (new) name exists at the destination folder                    
+                check_files_collision "$SRC_FOLDER_FULL_PATH" "$DST_FOLDER_FULL_PATH" "$DST_FILE_NAME"
+                EXIT_CODE=$?
+
+                case $EXIT_CODE in
+                    0) # No file with the same name in the destination folder
+                        echo "Found first available name: '$DST_FILE_NAME'"
+                        IS_NEW_NAME_FOUND=1
+                        break
+                    ;;
+                    1)  # Need a new name for the file, because of a collision
+                        echo "The files are not the same. Will copy the file with a new name."
+                        continue
+                    ;;
+                    2)  # Both files are the same
+                        echo "Both files are the same. Will skip the file."
+                        IS_SKIP_FILE=1
+                        break
+                    ;;
+                    *)  # Internal error, unsupported exit code, assuming that new name is required
+                        echo "An internal error has occured in collisions detection mechanism: got unsupported exit code ($EXIT_CODE). Will copy the file with a new name."
+                        IS_WARNINGS_DETECTED=1
+                    ;;
+                esac
             done
+
+            # Skipping the file if both files are the same
+            if [ $IS_SKIP_FILE -eq 1 ]
+            then
+                continue
+            fi
 
             if [ $IS_NAME_GEN_ERROR -ne 0 ]
             then
@@ -531,7 +553,7 @@ function copy_folder () {
     # Exiting with the corresponding exti code
     if [ $IS_ERRORS_DETECTED -eq 1 ]
     then
-        return 1 # some errors has been deteced
+        return 1 # some errors has been detected
     fi
 
     if [ $IS_WARNINGS_DETECTED -eq 1 ]
