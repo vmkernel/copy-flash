@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# TODO: Rewrite the function to use two parameters: full source and destination files paths
 function check_files_collision () {
     # SUMMARY
     # This function checks collision between two files in the source and the destination folder.
