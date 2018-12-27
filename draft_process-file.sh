@@ -228,9 +228,6 @@ function check_file_collision () {
 
 # TODO: Fix potential loss of data, when skipping a file (try mkstemp?)
 # TODO: BUG: the function ignores nested folders
-# Source path '/media/sdcard0/DCIM/100MEDIA/YI001602.SEC'
-# Destination path '/media/hdd/Incoming/YI001602.SEC'
-
 function copy_folder () {
     # SUMMARY
     # This function discovers and copies all files from a specified folder to a destination folder
@@ -321,6 +318,15 @@ function copy_folder () {
         echo "Found ${#SRC_FILES_LIST[*]} file(s)"
     fi
 
+    # Removing trailing slashes from source folder root path
+    SRC_FOLDER_ROOT_PATH_NO_TRAILING_SLASH=${SRC_FOLDER_ROOT_PATH%/}
+    if [ -z $SRC_FOLDER_ROOT_PATH_NO_TRAILING_SLASH ]
+    then
+        echo "*** WARNING *** Unable to remove trailing slash from source folder root path. Failing back to original path with trailing slash".
+    else
+        SRC_FOLDER_ROOT_PATH=$SRC_FOLDER_ROOT_PATH_NO_TRAILING_SLASH
+    fi
+
     # Processing each of the discovered files
     for SRC_FILE_PATH in "${SRC_FILES_LIST[@]}"
     do
@@ -359,7 +365,7 @@ function copy_folder () {
         local FILE_RELATIVE_PATH=${SRC_FILE_PATH#"$SRC_FOLDER_ROOT_PATH"} # Extracting destination file ralative path (without source folder name)
         #echo "Destination file relative path: $FILE_RELATIVE_PATH"
 
-        local FOLDER_RELATIVE_PATH=${FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # # Extracting destination folder ralative path (without source folder and file names)
+        local FOLDER_RELATIVE_PATH=${FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # Extracting destination folder ralative path (without source folder and file names)
         #echo "Destination folder relative path (w/o source folder name): $FOLDER_RELATIVE_PATH"
 
         FOLDER_RELATIVE_PATH=${FOLDER_RELATIVE_PATH%/} # Removing trailing slash from destination folder ralative path
@@ -417,7 +423,7 @@ function copy_folder () {
         fi
 
         # Generating destinaion file full path
-        local DST_FILE_PATH=$("$DST_FOLDER_PATH/$SRC_FILE_NAME")
+        local DST_FILE_PATH="$DST_FOLDER_PATH/$SRC_FILE_NAME"
         if [ -z "$DST_FILE_PATH" ]
         then
             echo "*** ERROR *** Unable to generate destination file full path. Will skip this file."
@@ -592,8 +598,3 @@ function copy_folder () {
 
     return 0 # no issues has been detected
 }
-
-#SRC_DEVICE_MOUNT_POINT="/home/pi/scripts/rpi-usb-disk-copy" # debug line
-#DST_FOLDER_PATH="/opt/usb-disk-copy" # debug line
-
-#./copy_folder "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_PATH"
