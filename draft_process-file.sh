@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# TODO: Integrate this code to the main script
 function check_file_collision () {
     # SUMMARY
     # This function checks collision between two files.
@@ -58,7 +59,7 @@ function check_file_collision () {
             return 1
         fi
 
-        echo "Raw file records:"
+        #echo "Raw file records:"
         echo "$SRC_FILE_RECORD (source)"
         echo "$DST_FILE_RECORD (destination)"
 
@@ -377,7 +378,7 @@ function copy_folder () {
         local IS_SKIP_FILE=0         # Both files are the same, will skip safely
         case $EXIT_CODE in
             0)  # No collisions, no file with the same name at the destination
-                echo "No collision has been detected. Will copy the file to its destination with the original name."
+                #echo "No collision has been detected. Will copy the file to its destination with the original name."
                 IS_NEW_NAME_REQUIRED=0
             ;;
             2)  # Both files are the same
@@ -458,12 +459,12 @@ function copy_folder () {
 
                 case $EXIT_CODE in
                     0) # No file with the same name in the destination folder
-                        echo "The name is available. Will copy the file with this name."
+                        echo "Found first available name for the file."
                         IS_NEW_NAME_FOUND=1
                         break
                     ;;
                     1)  # Need a new name for the file, because of a collision
-                        echo "The files are not the same. Will searche further for the first available name."
+                        #echo "The files are not the same. Will search further for the first available name."
                         continue
                     ;;
                     2)  # Both files are the same
