@@ -1,21 +1,20 @@
 #!/bin/bash
 
 # TODO: Rewrite the function to use two parameters: full source and destination files paths
-function check_files_collision () {
+function check_file_collision () {
     # SUMMARY
-    # This function checks collision between two files in the source and the destination folder.
+    # This function checks collision between two files.
     #
     # DESCRIPTION
-    # It receives source and destination folders full paths and a file name in the source directory for which collission is checked.
+    # It receives full path to source and destination files for which collission is checked.
     # If there's no file with the same name in destination folder, the function assumes that there's no collision.
-    # * If there's a file with the same name in the destination folder, the function compares both files by theirs size and creation date/time.
-    # * If any of these attributes are detected to be different, the function assumes that a collision has appeared and we need to work it out.
-    # * If all of there attributes are the same, the function assumes that a collision has appeared, but both files are the same and no action is required, so we can skip the file.
+    # If there's a file with the same name in the destination folder, the function compares both files by theirs size and creation date/time.
+    # * If any of these attributes are detected to be different, the function assumes that a collision has been detected and we need to work it out.
+    # * If all of there attributes are the same, the function assumes that a collision has been detected, but both files are the same and no action is required, so we can skip the file.
     #
     # ARGUMENTS
-    #   <source_folder> - full path to the source folder
-    #   <destination_folder> - full path to the destination folder
-    #   <file_name> - name of a file in source folder 
+    #   <source_file> - full path to the source file
+    #   <destination_file> - full path to the destination file
     #
     # RETURN CODES
     #   0 – no collision has been detected
@@ -24,51 +23,69 @@ function check_files_collision () {
     #  -1 – an internal error has occured, can't check for collision
     #
     # USAGE
-    #   Check_files_collision <source_folder> <destination_folder> <file_name>
+    #   check_file_collision <source_file> <destination_file>
 
-    local SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
-    local DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
-    local SRC_FILE_NAME=$3   # Assuming the third parameter as a source file name
+    #local SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
+    #local DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
+    #local SRC_FILE_NAME=$3   # Assuming the third parameter as a source file name
 
-    # Checking source folder path
-    if [ -z "$SRC_FOLDER_PATH" ]
+    local SRC_FILE_PATH=$1 # Assuming the first parameter as a source file path
+    local DST_FILE_PATH=$2 # Assuming the second parameter as a destination file path
+
+    ## Checking source folder path
+    #if [ -z "$SRC_FOLDER_PATH" ]
+    #then
+    #    echo "*** ERROR *** check_file_collision: insufficient arguments (expected 3, got 0)."
+    #    return -1
+    #fi
+
+    # Checking if source file path is set
+    if [ -z "$SRC_FILE_PATH" ]
     then
-        echo "*** ERROR *** check_files_collision: insufficient arguments (expected 3, got 0)."
+        echo "*** ERROR *** check_file_collision: insufficient arguments (expected 2, got 0)."
         return -1
     fi
     
-    # Checking destination folder path
-    if [ -z "$DST_FOLDER_PATH" ]
+    ## Checking destination folder path
+    #if [ -z "$DST_FOLDER_PATH" ]
+    #then
+    #    echo "*** ERROR *** check_file_collision: insufficient arguments (expected 3, got 1)."
+    #    return -1
+    #fi
+
+    # Checking if destination file path is set
+    if [ -z "$DST_FILE_PATH" ]
     then
-        echo "*** ERROR *** check_files_collision: insufficient arguments (expected 3, got 1)."
+        echo "*** ERROR *** check_file_collision: insufficient arguments (expected 2, got 1)."
         return -1
     fi
 
-    # Checking source file name
-    if [ -z "$SRC_FILE_NAME" ]
-    then
-        echo "*** ERROR *** check_files_collision: insufficient arguments (expected 3, got 2)."
-        return -1
-    fi
+    ## Checking source file name
+    #if [ -z "$SRC_FILE_NAME" ]
+    #then
+    #    echo "*** ERROR *** check_file_collision: insufficient arguments (expected 3, got 2)."
+    #    return -1
+    #fi
 
-    # Checking if the source folder exists
-    local SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
-    if [ -z "$SRC_FOLDER_RECORD" ]
-    then
-        echo "*** ERROR **** Source folder doesn't exists. Input argument error."
-        return -1
-    fi
+    ## Checking if the source folder exists
+    #local SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
+    #if [ -z "$SRC_FOLDER_RECORD" ]
+    #then
+    #    echo "*** ERROR **** Source folder doesn't exists. Input argument error."
+    #    return -1
+    #fi
 
-    # Checking if the destiantion folder exists
-    local DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
-        if [ -z "$DST_FOLDER_PATH" ]
-    then
-        echo "*** WARNING **** Destination folder doesn't exists."
-        return 0
-    fi
+    ## Checking if the destiantion folder exists
+    #local DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
+    #    if [ -z "$DST_FOLDER_PATH" ]
+    #then
+    #    echo "*** WARNING **** Destination folder doesn't exists."
+    #    return 0
+    #fi
     
-    # checking whether a file with the same name exists on the destination
-    local DST_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
+    # Checking whether a file with the same name exists on the destination
+    #local DST_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
+    local DST_FILE_RECORD=$(ls --all --full-time "$DST_FILE_PATH" 2> /dev/null)
     if [ -z "$DST_FILE_RECORD" ] 
     then # file doesn't exists
 
@@ -78,8 +95,10 @@ function check_files_collision () {
 
     else # file exists
 
-        echo "Destination already has a file with the same name '$SRC_FILE_NAME'."
-        local SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
+        #echo "Destination already has a file with the same name '$SRC_FILE_NAME'."
+        echo "Destination already has a file with the same name."
+        #local SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
+        local SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FILE_PATH" 2> /dev/null)
         if [ -z "$SRC_FILE_RECORD" ] # something went wrong, can't find source file with the same name
         then 
             echo "*** WARNING *** Unable to get source file information. Assuming collision."
@@ -320,7 +339,7 @@ function copy_folder () {
         local SRC_FILE_RECORD=$(ls --all "$SRC_FILE_PATH" 2> /dev/null)
         if [ -z "$SRC_FILE_RECORD" ]
         then
-            echo "*** ERROR **** Unable to find the source file '$SRC_FILE_PATH'. Will skip this one."
+            echo "*** ERROR **** Unable to find the source file '$SRC_FILE_PATH'. Will skip this file."
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
@@ -354,52 +373,61 @@ function copy_folder () {
 
         # Generating source and destination folder full paths
         # TODO: Remove trailing slashes for source directory
-        local SRC_FOLDER_FULL_PATH=""
-        local DST_FOLDER_FULL_PATH=""
+        local SRC_FOLDER_PATH=""
+        local DST_FOLDER_PATH=""
         if [ -z "$FOLDER_RELATIVE_PATH" ]
         then
             # Assuming the file in the root folder
-            SRC_FOLDER_FULL_PATH="$SRC_FOLDER_ROOT_PATH"
-            DST_FOLDER_FULL_PATH="$DST_FOLDER_ROOT_PATH"
+            SRC_FOLDER_PATH="$SRC_FOLDER_ROOT_PATH"
+            DST_FOLDER_PATH="$DST_FOLDER_ROOT_PATH"
             #echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
             #IS_ERRORS_DETECTED=1
             #continue # BUG: Potential loss of data (try mkstemp?)
         else
-            SRC_FOLDER_FULL_PATH="$SRC_FOLDER_ROOT_PATH/$FOLDER_RELATIVE_PATH"
-            DST_FOLDER_FULL_PATH="$DST_FOLDER_ROOT_PATH/$FOLDER_RELATIVE_PATH"
+            SRC_FOLDER_PATH="$SRC_FOLDER_ROOT_PATH/$FOLDER_RELATIVE_PATH"
+            DST_FOLDER_PATH="$DST_FOLDER_ROOT_PATH/$FOLDER_RELATIVE_PATH"
         fi
         
         # Checking the generated source folder path
-        if [ -z $SRC_FOLDER_FULL_PATH ]
+        if [ -z $SRC_FOLDER_PATH ]
         then
-            echo "*** ERROR *** Unable to generate source folder full path from the source folder root path ($SRC_FOLDER_FULL_PATH) and the relative path ($FOLDER_RELATIVE_PATH). Will skip this file."
+            echo "*** ERROR *** Unable to generate source folder full path from the source folder root path ($SRC_FOLDER_PATH) and the relative path ($FOLDER_RELATIVE_PATH). Will skip this file."
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        echo "Source folder full path: $SRC_FOLDER_FULL_PATH"
+        echo "Source folder full path: $SRC_FOLDER_PATH"
 
         # Checking the generated destination folder path
-        if [ -z $DST_FOLDER_FULL_PATH ]
+        if [ -z $DST_FOLDER_PATH ]
         then
             echo "*** ERROR *** Unable to generate destianion folder full path from the destination folder root path ($DST_FOLDER_ROOT_PATH) and the relative path ($FOLDER_RELATIVE_PATH). Will skip this file."
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        echo "Destination folder full path: $DST_FOLDER_FULL_PATH"
+        echo "Destination folder full path: $DST_FOLDER_PATH"
 
         # Making sure that the destination folder exists
-        mkdir --parents $DST_FOLDER_FULL_PATH
-        local DST_FOLDER_FULL_RECORD=$(ls --all "$DST_FOLDER_FULL_PATH" 2> /dev/null)
+        mkdir --parents $DST_FOLDER_PATH
+        local DST_FOLDER_FULL_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
         if [ -z "$DST_FOLDER_FULL_RECORD" ]
         then
-            echo "*** ERROR **** Unable to create the destination folder."
+            echo "*** ERROR **** Unable to create the destination folder. Will skip this file."
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
 
-        # TODO: run the collision check for each new file with counter in its name
+        # Generating destinaion file full path
+        local DST_FILE_PATH=$("$DST_FOLDER_PATH/$SRC_FILE_NAME")
+        if [ -z "$DST_FILE_PATH" ]
+        then
+            echo "*** ERROR *** Unable to generate destination file full path. Will skip this file."
+            IS_ERRORS_DETECTED=1
+            continue # BUG: Potential loss of data (try mkstemp?)
+        fi
+
         # Running collision check
-        check_files_collision "$SRC_FOLDER_FULL_PATH" "$DST_FOLDER_FULL_PATH" "$SRC_FILE_NAME"
+        #check_file_collision "$SRC_FOLDER_PATH" "$DST_FOLDER_PATH" "$SRC_FILE_NAME"
+        check_file_collision "$SRC_FILE_PATH" "$DST_FILE_PATH"
         EXIT_CODE=$?
 
         # Analyzing collision check's result
@@ -433,7 +461,6 @@ function copy_folder () {
             continue
         fi
 
-        local DST_FILE_FULL_PATH=""
         if [ $IS_NEW_NAME_REQUIRED -eq 1 ] # Generating a brand new name for the file, if required
         then
             local SRC_FILE_BASE_NAME   # Base name of the source file
@@ -474,16 +501,17 @@ function copy_folder () {
                 fi
 
                 # Generating new file full path
-                DST_FILE_FULL_PATH="$DST_FOLDER_FULL_PATH/$DST_FILE_NAME"
-                if [ -z "$DST_FILE_FULL_PATH" ]
+                DST_FILE_PATH="$DST_FOLDER_PATH/$DST_FILE_NAME"
+                if [ -z "$DST_FILE_PATH" ]
                 then
                     echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
                     IS_NAME_GEN_ERROR=1
                     break
                 fi
 
-                # Checking if a file with the same (new) name exists at the destination folder                    
-                check_files_collision "$SRC_FOLDER_FULL_PATH" "$DST_FOLDER_FULL_PATH" "$DST_FILE_NAME"
+                # Checking if a file with the same (new) name exists at the destination folder
+                #check_file_collision "$SRC_FOLDER_PATH" "$DST_FOLDER_PATH" "$DST_FILE_NAME"
+                check_file_collision "$SRC_FILE_PATH" "$DST_FILE_PATH"
                 EXIT_CODE=$?
 
                 case $EXIT_CODE in
@@ -527,8 +555,8 @@ function copy_folder () {
                 continue # BUG: Potential loss of data (try mkstemp?)
             fi
         else
-            DST_FILE_FULL_PATH="$DST_FOLDER_FULL_PATH/$SRC_FILE_NAME"
-            if [ -z "$DST_FILE_FULL_PATH" ]
+            DST_FILE_PATH="$DST_FOLDER_PATH/$SRC_FILE_NAME"
+            if [ -z "$DST_FILE_PATH" ]
             then
                 echo "*** ERROR *** Unable to generate destination file full path. Will skip the file."
                 IS_ERRORS_DETECTED=1
@@ -539,8 +567,8 @@ function copy_folder () {
         # Calling rsync to copy the file
         #echo "Invoking rsync..."
         #echo "Source path '$SRC_FILE_PATH'"
-        echo "Destination path '$DST_FILE_FULL_PATH'"
-        rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_FULL_PATH"
+        echo "Destination path '$DST_FILE_PATH'"
+        rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_PATH"
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]
         then
@@ -566,6 +594,6 @@ function copy_folder () {
 }
 
 #SRC_DEVICE_MOUNT_POINT="/home/pi/scripts/rpi-usb-disk-copy" # debug line
-#DST_FOLDER_FULL_PATH="/opt/usb-disk-copy" # debug line
+#DST_FOLDER_PATH="/opt/usb-disk-copy" # debug line
 
-#./copy_folder "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_FULL_PATH"
+#./copy_folder "$SRC_DEVICE_MOUNT_POINT" "$DST_FOLDER_PATH"
