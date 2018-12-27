@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# TODO: Rewrite the function to use two parameters: full source and destination files paths
 function check_file_collision () {
     # SUMMARY
     # This function checks collision between two files.
@@ -25,19 +24,8 @@ function check_file_collision () {
     # USAGE
     #   check_file_collision <source_file> <destination_file>
 
-    #local SRC_FOLDER_PATH=$1 # Assuming the first parameter as a source folder
-    #local DST_FOLDER_PATH=$2 # Assuming the second parameter as a destination folder
-    #local SRC_FILE_NAME=$3   # Assuming the third parameter as a source file name
-
     local SRC_FILE_PATH=$1 # Assuming the first parameter as a source file path
     local DST_FILE_PATH=$2 # Assuming the second parameter as a destination file path
-
-    ## Checking source folder path
-    #if [ -z "$SRC_FOLDER_PATH" ]
-    #then
-    #    echo "*** ERROR *** check_file_collision: insufficient arguments (expected 3, got 0)."
-    #    return -1
-    #fi
 
     # Checking if source file path is set
     if [ -z "$SRC_FILE_PATH" ]
@@ -45,13 +33,6 @@ function check_file_collision () {
         echo "*** ERROR *** check_file_collision: insufficient arguments (expected 2, got 0)."
         return -1
     fi
-    
-    ## Checking destination folder path
-    #if [ -z "$DST_FOLDER_PATH" ]
-    #then
-    #    echo "*** ERROR *** check_file_collision: insufficient arguments (expected 3, got 1)."
-    #    return -1
-    #fi
 
     # Checking if destination file path is set
     if [ -z "$DST_FILE_PATH" ]
@@ -59,45 +40,17 @@ function check_file_collision () {
         echo "*** ERROR *** check_file_collision: insufficient arguments (expected 2, got 1)."
         return -1
     fi
-
-    ## Checking source file name
-    #if [ -z "$SRC_FILE_NAME" ]
-    #then
-    #    echo "*** ERROR *** check_file_collision: insufficient arguments (expected 3, got 2)."
-    #    return -1
-    #fi
-
-    ## Checking if the source folder exists
-    #local SRC_FOLDER_RECORD=$(ls --all "$SRC_FOLDER_PATH" 2> /dev/null)
-    #if [ -z "$SRC_FOLDER_RECORD" ]
-    #then
-    #    echo "*** ERROR **** Source folder doesn't exists. Input argument error."
-    #    return -1
-    #fi
-
-    ## Checking if the destiantion folder exists
-    #local DST_FOLDER_RECORD=$(ls --all "$DST_FOLDER_PATH" 2> /dev/null)
-    #    if [ -z "$DST_FOLDER_PATH" ]
-    #then
-    #    echo "*** WARNING **** Destination folder doesn't exists."
-    #    return 0
-    #fi
     
     # Checking whether a file with the same name exists on the destination
-    #local DST_FILE_RECORD=$(ls --all --full-time "$DST_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
     local DST_FILE_RECORD=$(ls --all --full-time "$DST_FILE_PATH" 2> /dev/null)
     if [ -z "$DST_FILE_RECORD" ] 
     then # file doesn't exists
 
-        #echo "Source file '$SRC_FILE_NAME' doesn't exist on the destination."
-        #echo "Source file doesn't exist on the destination."
         return 0
 
     else # file exists
 
-        #echo "Destination already has a file with the same name '$SRC_FILE_NAME'."
         echo "Destination already has a file with the same name."
-        #local SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FOLDER_PATH" 2> /dev/null | grep --ignore-case --max-count 1 "$SRC_FILE_NAME")
         local SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FILE_PATH" 2> /dev/null)
         if [ -z "$SRC_FILE_RECORD" ] # something went wrong, can't find source file with the same name
         then 
@@ -227,7 +180,6 @@ function check_file_collision () {
 }
 
 # TODO: Fix potential loss of data, when skipping a file (try mkstemp?)
-# TODO: BUG: the function ignores nested folders
 function copy_folder () {
     # SUMMARY
     # This function discovers and copies all files from a specified folder to a destination folder
@@ -358,27 +310,15 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        #echo "File name: '$SRC_FILE_NAME'"
 
         # Extracting relative folder path
         # /media/sdcard0/DCIM/100MEDIA/YI001601.MP4 -> (root folder/)DCIM/100MEDIA(/file.name)
         local FILE_RELATIVE_PATH=${SRC_FILE_PATH#"$SRC_FOLDER_ROOT_PATH"} # Extracting destination file ralative path (without source folder name)
-        #echo "Destination file relative path: $FILE_RELATIVE_PATH"
-
         local FOLDER_RELATIVE_PATH=${FILE_RELATIVE_PATH%"$SRC_FILE_NAME"} # Extracting destination folder ralative path (without source folder and file names)
-        #echo "Destination folder relative path (w/o source folder name): $FOLDER_RELATIVE_PATH"
-
         FOLDER_RELATIVE_PATH=${FOLDER_RELATIVE_PATH%/} # Removing trailing slash from destination folder ralative path
-        #echo "Destination folder relative path (w/o trailing slash): $FOLDER_RELATIVE_PATH"
-
         FOLDER_RELATIVE_PATH=${FOLDER_RELATIVE_PATH#/} # Removing leading slash from destination folder ralative path
-        #echo "Destiantion folder relative path (w/o leading slash): $FOLDER_RELATIVE_PATH"
-
-        #echo "Destination folder relative path: $FOLDER_RELATIVE_PATH"
-        #echo "Destination folder root path: $DST_FOLDER_ROOT_PATH"
 
         # Generating source and destination folder full paths
-        # TODO: Remove trailing slashes for source directory
         local SRC_FOLDER_PATH=""
         local DST_FOLDER_PATH=""
         if [ -z "$FOLDER_RELATIVE_PATH" ]
@@ -386,9 +326,6 @@ function copy_folder () {
             # Assuming the file in the root folder
             SRC_FOLDER_PATH="$SRC_FOLDER_ROOT_PATH"
             DST_FOLDER_PATH="$DST_FOLDER_ROOT_PATH"
-            #echo "*** ERROR *** Unable to extract destination folder relative path from the file path. Will skip this file."
-            #IS_ERRORS_DETECTED=1
-            #continue # BUG: Potential loss of data (try mkstemp?)
         else
             SRC_FOLDER_PATH="$SRC_FOLDER_ROOT_PATH/$FOLDER_RELATIVE_PATH"
             DST_FOLDER_PATH="$DST_FOLDER_ROOT_PATH/$FOLDER_RELATIVE_PATH"
@@ -401,7 +338,7 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        echo "Source folder full path: $SRC_FOLDER_PATH"
+        #echo "Source folder full path: $SRC_FOLDER_PATH"
 
         # Checking the generated destination folder path
         if [ -z $DST_FOLDER_PATH ]
@@ -410,7 +347,7 @@ function copy_folder () {
             IS_ERRORS_DETECTED=1
             continue # BUG: Potential loss of data (try mkstemp?)
         fi
-        echo "Destination folder full path: $DST_FOLDER_PATH"
+        #echo "Destination folder full path: $DST_FOLDER_PATH"
 
         # Making sure that the destination folder exists
         mkdir --parents $DST_FOLDER_PATH
@@ -432,7 +369,6 @@ function copy_folder () {
         fi
 
         # Running collision check
-        #check_file_collision "$SRC_FOLDER_PATH" "$DST_FOLDER_PATH" "$SRC_FILE_NAME"
         check_file_collision "$SRC_FILE_PATH" "$DST_FILE_PATH"
         EXIT_CODE=$?
 
@@ -516,18 +452,18 @@ function copy_folder () {
                 fi
 
                 # Checking if a file with the same (new) name exists at the destination folder
-                #check_file_collision "$SRC_FOLDER_PATH" "$DST_FOLDER_PATH" "$DST_FILE_NAME"
+                echo "Checking destination file name '$DST_FILE_NAME'..."
                 check_file_collision "$SRC_FILE_PATH" "$DST_FILE_PATH"
                 EXIT_CODE=$?
 
                 case $EXIT_CODE in
                     0) # No file with the same name in the destination folder
-                        echo "Found first available name: '$DST_FILE_NAME'"
+                        echo "The name is available. Will copy the file with this name."
                         IS_NEW_NAME_FOUND=1
                         break
                     ;;
                     1)  # Need a new name for the file, because of a collision
-                        echo "The files are not the same. Will copy the file with a new name."
+                        echo "The files are not the same. Will searche further for the first available name."
                         continue
                     ;;
                     2)  # Both files are the same
@@ -571,8 +507,6 @@ function copy_folder () {
         fi
 
         # Calling rsync to copy the file
-        #echo "Invoking rsync..."
-        #echo "Source path '$SRC_FILE_PATH'"
         echo "Destination path '$DST_FILE_PATH'"
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_PATH"
         EXIT_CODE=$?
