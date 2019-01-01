@@ -922,7 +922,6 @@ echo "STARTING FILE COPY PROCESS..."
 echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
 echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
 
-# TODO: instert new functions call here
 if [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Operations mode mode selection
 then
     # Old-way, separate folder mode
@@ -931,9 +930,8 @@ then
     rsync --recursive --human-readable --progress --times "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
 
 else # New-way, all-in-one folder mode
-
-    # TODO: Insert new file copy logic here, remove rsync call, make a function
-    rsync --recursive --human-readable --progress --times --append-verify "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
+    copy_folder $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
+    
 fi # Operations mode mode selection
 
 EXIT_CODE=$?
