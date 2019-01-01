@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TODO: Integrate this code to the main script
-function check_file_collision () {
+function check_files_collision () {
     # SUMMARY
     # This function checks collision between two files.
     #
@@ -23,7 +23,7 @@ function check_file_collision () {
     #  -1 – an internal error has occured, can't check for collision
     #
     # USAGE
-    #   check_file_collision <source_file> <destination_file>
+    #   check_files_collision <source_file> <destination_file>
 
     local SRC_FILE_PATH=$1 # Assuming the first parameter as a source file path
     local DST_FILE_PATH=$2 # Assuming the second parameter as a destination file path
@@ -31,14 +31,14 @@ function check_file_collision () {
     # Checking if source file path is set
     if [ -z "$SRC_FILE_PATH" ]
     then
-        echo "*** ERROR *** check_file_collision: insufficient arguments (expected 2, got 0)."
+        echo "*** ERROR *** check_files_collision: insufficient arguments (expected 2, got 0)."
         return -1
     fi
 
     # Checking if destination file path is set
     if [ -z "$DST_FILE_PATH" ]
     then
-        echo "*** ERROR *** check_file_collision: insufficient arguments (expected 2, got 1)."
+        echo "*** ERROR *** check_files_collision: insufficient arguments (expected 2, got 1)."
         return -1
     fi
     
@@ -370,7 +370,7 @@ function copy_folder () {
         fi
 
         # Running collision check
-        check_file_collision "$SRC_FILE_PATH" "$DST_FILE_PATH"
+        check_files_collision "$SRC_FILE_PATH" "$DST_FILE_PATH"
         EXIT_CODE=$?
 
         # Analyzing collision check's result
@@ -454,7 +454,7 @@ function copy_folder () {
 
                 # Checking if a file with the same (new) name exists at the destination folder
                 echo "Checking destination file name '$DST_FILE_NAME'..."
-                check_file_collision "$SRC_FILE_PATH" "$DST_FILE_PATH"
+                check_files_collision "$SRC_FILE_PATH" "$DST_FILE_PATH"
                 EXIT_CODE=$?
 
                 case $EXIT_CODE in
