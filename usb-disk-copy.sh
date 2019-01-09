@@ -1,15 +1,14 @@
 #!/bin/bash
 
 ### TODO ###
-# * General: find a way to notify user when copy process has started and has finished (Issue #5).
-# * rsync: auto rename different files with the same names to avoid skipping (Issue #8).
-# * General: use original file creation date as a destination folder name in order to sort data by its real creation date (Issue #9).
-# * General: if I'm using 'current' date and time in log file names why I shouldn't use the same name for destination folder, just to match a specific folder with a specific log file (Issue #9).
-# * General: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts (Issue #9).
-#            it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
-#            it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
-# * General: add disk label information (Issue #13).
-# * General: check return values (e.g. for mkdir).
+# * Feature: find a way to notify user when copy process has started and has finished (Issue #5).
+# * Feature: use original file creation date as a destination folder name in order to sort data by its real creation date (Issue #9).
+# * Improvement: if I'm using 'current' date and time in log file names why I shouldn't use the same name for destination folder, just to match a specific folder with a specific log file (Issue #9).
+# * Improvement: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts (Issue #9).
+#                it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
+#                it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
+# * Feature: add disk label information (Issue #13).
+# * Feature: check return values (e.g. for mkdir).
 
 #### SETTINGS ####
 # Source device mount point (without a trailing slash!)
@@ -97,7 +96,7 @@ function check_files_collision () {
 
     else # file exists
 
-        echo "Destination already has a file with the same name."
+        echo "Destination folder already has a file with the same name."
         local SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FILE_PATH" 2> /dev/null)
         if [ -z "$SRC_FILE_RECORD" ] # something went wrong, can't find source file with the same name
         then 
@@ -338,7 +337,7 @@ function copy_folder () {
         fi
 
         echo ""
-        echo "Processing file: $SRC_FILE_PATH"
+        echo "PROCESSING FILE: $SRC_FILE_PATH"
 
         # Checking if the source file exists
         local SRC_FILE_RECORD=$(ls --all "$SRC_FILE_PATH" 2> /dev/null)
@@ -920,7 +919,7 @@ fi # Checking if destination folder name pattern is specified
 echo ""
 echo "COPYING FILES..."
 echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
-echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
+echo "Destination: $DST_FOLDER_FULL_PATH (/dev/$DST_DEVICE_NAME)"
 
 if [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Operations mode mode selection
 then
