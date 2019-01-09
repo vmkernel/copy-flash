@@ -306,7 +306,7 @@ function copy_folder () {
     fi
 
     # Discoverying files in the source folder
-    echo "Discoverying files in the source folder '$SRC_FOLDER_ROOT_PATH'..."
+    echo "Searching for files in the source folder..."
     IFS=$'\n' # Setting default delimeter to new-line symbol
     local SRC_FILES_LIST=( $(find $SRC_FOLDER_ROOT_PATH -type f,l) )
     if [ ${#SRC_FILES_LIST[*]} -le 0 ]
@@ -338,7 +338,7 @@ function copy_folder () {
         fi
 
         echo ""
-        echo "Processing file '$SRC_FILE_PATH'"
+        echo "Processing file: $SRC_FILE_PATH"
 
         # Checking if the source file exists
         local SRC_FILE_RECORD=$(ls --all "$SRC_FILE_PATH" 2> /dev/null)
@@ -554,15 +554,15 @@ function copy_folder () {
         fi
 
         # Calling rsync to copy the file
-        echo "Destination path '$DST_FILE_PATH'"
+        echo "Destination: $DST_FILE_PATH"
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_PATH"
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]
         then
-            echo "*** ERROR *** rsync has failed to copy the file (exit code: $EXIT_CODE)"
+            echo "*** ERROR *** rsync has failed to copy the file ($EXIT_CODE)"
             IS_ERRORS_DETECTED=1
         else
-            echo "rsync has finished successfylly (exit code: $EXIT_CODE)"
+            echo "rsync has finished successfylly ($EXIT_CODE)"
         fi
     done
 
@@ -639,10 +639,10 @@ fi
 IS_ALL_IN_ONE_FOLDER=1 # Operations mode switch, by default assuming all-in-one directory mode
 if [ -z "$DST_FOLDER_NAME_PATTERN" ]
 then
-    echo "Operations mode: all-in-one folder (separate folder name pattern is NOT set)."
+    echo "Operations mode: all-in-one folder (unique folder name pattern is NOT set)."
 else
     IS_ALL_IN_ONE_FOLDER=0
-    echo "Operations mode: separate folder (separate folder name pattern is set)."
+    echo "Operations mode: separate folder (unique folder name pattern is set)."
 fi # Checking operations mode switch / separate destination folder name pattern
 #### End of checking settings ####
 
@@ -711,15 +711,15 @@ else
             # If it's NOT a match, assuming the first device as the destination device and the current device as a source.
             DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
             SRC_DEVICE_NAME=$1
-            echo "Destination device name (auto-detect): $DST_DEVICE_NAME"
-            echo "Source device name (auto-detect): $SRC_DEVICE_NAME"
+            echo "Destination device name (auto-detection): $DST_DEVICE_NAME"
+            echo "Source device name (auto-detection): $SRC_DEVICE_NAME"
         fi # Comparing the attached device with the first device found in system
     else 
         # Performing sequential detection
         DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
         SRC_DEVICE_NAME=${ATTACHED_SCSI_DISKS[1]}
-        echo "Destination device name (sequential detect): $DST_DEVICE_NAME"
-        echo "Source device name (sequential detect): $SRC_DEVICE_NAME"
+        echo "Destination device name (sequential detection): $DST_DEVICE_NAME"
+        echo "Source device name (sequential detection): $SRC_DEVICE_NAME"
     fi # Specific device binding
 
     # Checking if the destination device name is set correctly
@@ -759,26 +759,26 @@ fi # Checking attached SCSI disks count
 
 #### Checking if the mount points are free ####
 echo ""
-echo "CHECKING MOUNT POINTS..."
+echo "CHECKING MOUNT POINTS AND DEVICES..."
 
 ## SOURCE
 # Unmounting the source MOUNT POINT if it's already mounted
 MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ] # Is the source mountpoint already mounted
 then
-    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is not mounted."
+    echo "Source mount point '$SRC_DEVICE_MOUNT_POINT' is not mounted."
 else
     # Unmounting already mounted mountpoint
-    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
+    echo "Source mount point '$SRC_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
     umount $SRC_DEVICE_MOUNT_POINT
 
     # Checking if source mountpoint has been unmounted
     MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
     if [ -z "$MOUNT_STATUS" ]
     then
-        echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been successfully unmounted."
+        echo "Source mount point has been unmounted successfully."
     else
-        echo "*** ERROR *** Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'. The script has terminated unexpectedly."
+        echo "*** ERROR *** Unable to unmount source mount point. The script has terminated unexpectedly."
         exit 1
     fi
 fi # Is the source mountpoint already mounted
@@ -787,18 +787,18 @@ fi # Is the source mountpoint already mounted
 MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_NAME)
 if [ -z "$MOUNT_STATUS" ] # Is the source device already mounted
 then
-    echo "The device '/dev/$SRC_DEVICE_NAME' is not mounted."
+    echo "Source device '/dev/$SRC_DEVICE_NAME' is not mounted."
 else
-    echo "The device '/dev/$SRC_DEVICE_NAME' is already mounted, unmounting..."
+    echo "Source device '/dev/$SRC_DEVICE_NAME' is already mounted, unmounting..."
     umount /dev/$SRC_DEVICE_NAME
 
     # Checking if source device has been unmounted
     MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_NAME)
     if [ -z "$MOUNT_STATUS" ]
     then
-        echo "The device '/dev/$SRC_DEVICE_NAME' has been successfully unmounted."
+        echo "Source device has been unmounted successfully."
     else
-        echo "*** ERROR *** Unable to unmount device '/dev/$SRC_DEVICE_NAME'. The script has terminated unexpectedly."
+        echo "*** ERROR *** Unable to unmount source device. The script has terminated unexpectedly."
         exit 1
     fi
 fi # Is the source device already mounted
@@ -808,18 +808,18 @@ fi # Is the source device already mounted
 MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ] # Is the destination mountpoint already mounted
 then
-    echo "The mount point '$DST_DEVICE_MOUNT_POINT' is not mounted."
+    echo "Destination mount point '$DST_DEVICE_MOUNT_POINT' is not mounted."
 else
-    echo "The mount point '$DST_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
+    echo "Destination mount point '$DST_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
     umount $DST_DEVICE_MOUNT_POINT
 
     # Checking if destination mountpoint has been unmounted
     MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
     if [ -z "$MOUNT_STATUS" ]
     then
-        echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been successfully unmounted."
+        echo "Destination mount point has been unmounted successfully."
     else
-        echo "*** ERROR *** Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'. The script has terminated unexpectedly."
+        echo "*** ERROR *** Unable to unmount destination mount point. The script has terminated unexpectedly."
         exit 1
     fi
 fi # Is the destination mountpoint already mounted
@@ -828,18 +828,18 @@ fi # Is the destination mountpoint already mounted
 MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_NAME)
 if [ -z "$MOUNT_STATUS" ] # Is the destination device already mounted
 then
-    echo "The device '/dev/$DST_DEVICE_NAME' is not mounted."
+    echo "Destination device '/dev/$DST_DEVICE_NAME' is not mounted."
 else
-    echo "The device '/dev/$DST_DEVICE_NAME' is already mounted, unmounting..."
+    echo "Destination device '/dev/$DST_DEVICE_NAME' is already mounted, unmounting..."
     umount /dev/$DST_DEVICE_NAME
 
     # Checking if destination device has been unmounted
     MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_NAME)
     if [ -z "$MOUNT_STATUS" ]
     then
-        echo "The device '/dev/$DST_DEVICE_NAME' has been successfully unmounted."
+        echo "Destination device has been unmounted successfully ."
     else
-        echo "*** ERROR *** Unable to unmount device '/dev/$DST_DEVICE_NAME'. The script has terminated unexpectedly."
+        echo "*** ERROR *** Unable to unmount destination device. The script has terminated unexpectedly."
         exit 1
     fi
 fi # Is the destination device already mounted
@@ -856,10 +856,10 @@ mount /dev/$SRC_DEVICE_NAME $SRC_DEVICE_MOUNT_POINT
 MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ] # Is the source device mountpoint mounted
 then
-    echo "*** ERROR *** Unable to mount device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT. The script has terminated unexpectedly."
+    echo "*** ERROR *** Unable to mount source device. The script has terminated unexpectedly."
     exit 1
 else
-    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' successfully mounted."
+    echo "Source device has been mounted successfully."
 fi # Is the source device mountpoint has been mounted
 
 echo "Mounting destination device '$DST_DEVICE_NAME' to mount point '$DST_DEVICE_MOUNT_POINT'..."
@@ -867,10 +867,10 @@ mount /dev/$DST_DEVICE_NAME $DST_DEVICE_MOUNT_POINT
 MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ] # Is the destination device mountpoint mounted
 then
-    echo "*** ERROR *** Unable to mount device '$DST_DEVICE_NAME ' to mount point '$DST_DEVICE_MOUNT_POINT. The script has terminated unexpectedly."
+    echo "*** ERROR *** Unable to mount destination device. The script has terminated unexpectedly."
     exit 1
 else
-    echo "The mount point '$DST_DEVICE_MOUNT_POINT' successfully mounted."
+    echo "Destination device has been mounted successfully."
 fi # Checking if destination device mountpoint has been mounted
 #### End of mounting devices ####
 
@@ -890,7 +890,7 @@ then
     echo "*** ERROR *** Unable to generate destination folder root path. The script has terminated unexpectedly."
     exit 1
 else
-    echo "Using destination folder root '$DST_FOLDER_FULL_PATH'."
+    echo "Destination folder root path: $DST_FOLDER_FULL_PATH"
 fi # Is destination folder full path generated
 
 
@@ -918,7 +918,7 @@ fi # Checking if destination folder name pattern is specified
 
 #### Copying files ####
 echo ""
-echo "STARTING FILE COPY PROCESS..."
+echo "COPYING FILES..."
 echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
 echo "Destination: '$DST_FOLDER_FULL_PATH' (/dev/$DST_DEVICE_NAME)"
 
@@ -947,19 +947,17 @@ umount -f $DST_DEVICE_MOUNT_POINT
 MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
-    echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been sucessfully unmounted."
+    echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been unmounted successfully."
 else
     echo "*** ERROR *** Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'."
 fi
 
-
-#### Cleaning up ####
 # Unmounting the source devices from the mount point
 umount $SRC_DEVICE_MOUNT_POINT
 MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
 if [ -z "$MOUNT_STATUS" ]
 then
-    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been sucessfully unmounted."
+    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been unmounted successfully."
 else
     echo "*** ERROR *** Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'."
 fi
