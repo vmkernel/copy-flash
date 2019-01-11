@@ -1,51 +1,6 @@
 #!/bin/bash
 
-### TODO ###
-# * Feature: find a way to notify user when copy process has started and has finished (Issue #5).
-# * Feature: use original file creation date as a destination folder name in order to sort data by its real creation date (Issue #9).
-# * Improvement: if I'm using 'current' date and time in log file names why I shouldn't use the same name for destination folder, just to match a specific folder with a specific log file (Issue #9).
-# * Improvement: fix potential bug. Every time Raspberry Pi stops it saves last known date and time and after the device starts (Issue #9).
-#                it restores last known date and time. So the date and time in the device's operations system is incorrect until ntpd updates
-#                it from a NTP server. So I need to figure out another name for target folder based on different unique identifier.
-# * Feature: add disk label information (Issue #13).
-# * Feature: check return values (e.g. for mkdir).
-
-#### SETTINGS ####
-# Source device mount point (without a trailing slash!)
-# Specifies an EMPTY folder in a RPi file system to which a source volume will be mounted
-# Examples: /media/usb0, /mnt/source
-SRC_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/source'
-
-# Destination device mount point (without a trailing slash)
-# Specifies an EMPTY folder in a RPi file system to which a destination volume will be mounted
-# Examples: /media/usb1, /mnt/destination
-DST_DEVICE_MOUNT_POINT='/mnt/usb-disk-copy/destination'
-
-# Destination folder relative path
-# Specifies the path from destination volume's root folder to a destination folder
-# If the parameter is not specified, files or separate folders (depending on IS_ALL_IN_ONE_FOLDER switch) will be placed in the root folder of a destination volume
-DST_FOLDER_ROOT='Incoming'
-
-# Separate folder name pattern and operations mode switch
-# ALL-IN-ONE folder mode
-#   USE WITH CAUTION!
-#   If the parameter is NOT set, the script works in ALL-IN-ONE folder mode.
-#   Places all files from all source volumes to a single destination directory.
-#   No name collision resolution is implemented for now.
-#
-# SEPARATE folders mode
-#   If the parameter IS set, specifies a pattern for a separate folder name that will be created for a source volume EVERY TIME the script starts.
-#   Creates a separate folder for each source volume EVERY TIME the script starts.
-#   Resuming is NOT supported.
-#
-#   Example: 
-#       usbflash_XXXXXXXXXXXXXXXXXX
-#       All the X-es will be replaced by mktmp command to random digits and letters.
-DST_FOLDER_NAME_PATTERN=''
-#### End of settings section ###
-
-
-#### FUNCTIONS DEFENITION ####
+# TODO: Integrate this code to the main script
 function check_files_collision () {
     # SUMMARY
     # This function checks collision between two files.
@@ -96,7 +51,7 @@ function check_files_collision () {
 
     else # file exists
 
-        echo "Destination folder already has a file with the same name."
+        echo "Destination already has a file with the same name."
         local SRC_FILE_RECORD=$(ls --all --full-time "$SRC_FILE_PATH" 2> /dev/null)
         if [ -z "$SRC_FILE_RECORD" ] # something went wrong, can't find source file with the same name
         then 
@@ -223,7 +178,7 @@ function check_files_collision () {
 
     echo "Both files are the same by their date, time and size. Will skip the file."
     return 2
-} # check_files_collision
+}
 
 # TODO: Fix potential loss of data, when skipping a file (try mkstemp?)
 function copy_folder () {
@@ -305,7 +260,7 @@ function copy_folder () {
     fi
 
     # Discoverying files in the source folder
-    echo "Searching for files in the source folder..."
+    echo "Discoverying files in the source folder '$SRC_FOLDER_ROOT_PATH'..."
     IFS=$'\n' # Setting default delimeter to new-line symbol
     local SRC_FILES_LIST=( $(find $SRC_FOLDER_ROOT_PATH -type f,l) )
     if [ ${#SRC_FILES_LIST[*]} -le 0 ]
@@ -337,7 +292,7 @@ function copy_folder () {
         fi
 
         echo ""
-        echo "PROCESSING FILE: $SRC_FILE_PATH"
+        echo "Processing file '$SRC_FILE_PATH'"
 
         # Checking if the source file exists
         local SRC_FILE_RECORD=$(ls --all "$SRC_FILE_PATH" 2> /dev/null)
@@ -553,15 +508,15 @@ function copy_folder () {
         fi
 
         # Calling rsync to copy the file
-        echo "Destination: $DST_FILE_PATH"
+        echo "Destination path '$DST_FILE_PATH'"
         rsync --human-readable --progress --times "$SRC_FILE_PATH" "$DST_FILE_PATH"
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]
         then
-            echo "*** ERROR *** rsync has failed to copy the file ($EXIT_CODE)"
+            echo "*** ERROR *** rsync has failed to copy the file (exit code: $EXIT_CODE)"
             IS_ERRORS_DETECTED=1
         else
-            echo "rsync has finished successfylly ($EXIT_CODE)"
+            echo "rsync has finished successfylly (exit code: $EXIT_CODE)"
         fi
     done
 
@@ -577,392 +532,4 @@ function copy_folder () {
     fi
 
     return 0 # no issues has been detected
-} # copy_folder
-#### End of functions definition ####
-
-
-### MAIN SECTION ###
-SCRIPT_NAME=`basename "$0"`
-echo ""
-echo "THE SCRIPT HAS STARTED ($SCRIPT_NAME)"
-echo "CHECKING SETTING..."
-echo "Source device mount point: $SRC_DEVICE_MOUNT_POINT"
-echo "Destination device mount moint: $DST_DEVICE_MOUNT_POINT"
-echo "Destination folder relative path: $DST_FOLDER_ROOT"
-echo "Destination folder name pattern: $DST_FOLDER_NAME_PATTERN"
-
-#### Checking settings ####
-# Checking if destination device mount point / source folder is set
-if [ -z "$DST_DEVICE_MOUNT_POINT" ]
-then
-    echo "*** ERROR *** Destination mount point is not set. Check settings! The script has terminated unexpectedly."
-    exit 1
-else
-    # Removing trailing slashes if any
-    DST_DEVICE_MOUNT_POINT=${DST_DEVICE_MOUNT_POINT%/}
-    if [ -z "$DST_DEVICE_MOUNT_POINT" ]
-    then
-        echo "*** ERROR *** Failed to remove trailing slash from destination mount point path. The script has terminated unexpectedly."
-        exit 1
-    fi
-
-    mkdir --parents $DST_DEVICE_MOUNT_POINT
-    # TODO: check return values
-fi # Checking if destination device mount point / source folder is set
-
-# Checking if source device mount point / source folder is set
-if [ -z "$SRC_DEVICE_MOUNT_POINT" ] 
-then
-    echo "*** ERROR *** Source mount point is not set. Check settings! The script has terminated unexpectedly."
-    exit 1
-else
-    # Removing trailing slashes if any
-    SRC_DEVICE_MOUNT_POINT=${SRC_DEVICE_MOUNT_POINT%/}
-    if [ -z "$SRC_DEVICE_MOUNT_POINT" ]
-    then
-        echo "*** ERROR *** Failed to remove trailing slash from source mount point path. The script has terminated unexpectedly."
-        exit 1
-    fi
-
-    mkdir --parents $SRC_DEVICE_MOUNT_POINT
-    # TODO: check return values
-fi # Checking if source device mount point / source folder is set
-
-# Checking if destination folder relative path is set
-if [ -z "$DST_FOLDER_ROOT" ]
-then
-    echo "*** WARNING *** Destination folder is not set. Assuming root folder."
-fi
-
-# Checking operations mode switch / separate destination folder name pattern
-IS_ALL_IN_ONE_FOLDER=1 # Operations mode switch, by default assuming all-in-one directory mode
-if [ -z "$DST_FOLDER_NAME_PATTERN" ]
-then
-    echo "Operations mode: all-in-one folder (unique folder name pattern is NOT set)."
-else
-    IS_ALL_IN_ONE_FOLDER=0
-    echo "Operations mode: separate folder (unique folder name pattern is set)."
-fi # Checking operations mode switch / separate destination folder name pattern
-#### End of checking settings ####
-
-
-#### Checking arguments
-echo ""
-echo "CHECKING ARGUMENTS..."
-
-# Checking if specific device to bind to set using an argument
-IS_BIND_TO_DEVICE=0 # no device binding by default
-if [ -z "$1" ]
-then
-    # No arguments has been specified
-    echo "No device name is specified in the command line for the script. Will do a full scan."
-else
-    # Got at least one argument
-    echo "Got the device name from the command line: $1"
-
-    # Checking if the device specified by the argument is present in the system
-    IS_DEVICE_PRESENT=$(ls -la /dev/ | grep --max-count 1 --ignore-case $1)
-    if [ -z "$IS_DEVICE_PRESENT" ]
-    then
-        echo "*** WARNING **** Unable to find the device from the command line '/dev/$1'. Will do a full scan."
-    else
-        echo "The specified device '/dev/$1' is attached to the system. Will try to bind to it."
-        IS_BIND_TO_DEVICE=1
-    fi # Checking if the device specified by the argument is present in the system
-fi # Checking if specific device to bind to set using an argument
-#### End of checking arguments
-
-
-#### Devices discovery ####
-echo ""
-echo "SEARCHING FOR DEVICES..."
-
-# Enumerating all attached SCSI disks using name pattern /dev/sd*1
-ATTACHED_SCSI_DISKS=( $(ls -la /dev/ | grep --ignore-case --perl-regexp "sd(\w+)1" | awk '{print $10}' | sort) )
-if [ ${#ATTACHED_SCSI_DISKS[*]} -le 0 ]
-then
-    # Got an empty array, assuming no device was found
-    echo "*** WARNING *** No devices found. The script has terminated prematurely."
-    exit 0
-else
-    echo "Found ${#ATTACHED_SCSI_DISKS[*]} device(s): ${ATTACHED_SCSI_DISKS[*]}"
-fi # Enumerating all attached SCSI disks using name pattern /dev/sd*1
-
-# Checking attached SCSI disks count
-if [ ${#ATTACHED_SCSI_DISKS[*]} -lt 2 ] 
-then
-    # Exit if there's less than two disks attached.
-    echo "*** WARNING *** Not enough devices. Need at least two devices to start a copying process. The script has terminated prematurely."
-    exit 0
-else 
-    # Two (2) or more disks has been attached
-    DST_DEVICE_NAME=""
-    SRC_DEVICE_NAME=""
-    if [ $IS_BIND_TO_DEVICE -eq 1 ] # Specific device binding
-    then
-        # Trying to bind to the specified device
-        if [ "${ATTACHED_SCSI_DISKS[0]}" = "$1" ] # Comparing the attached device with the first device found in system
-        then
-            # If it's a match, then do nothing, assuming this is the destination device and it's just attached
-            echo "*** WARNING *** Auto-detect is assuming the devices as the first device in the system and will use it as a destination device as soon as a source device appears. Waiting for a source device. The script has terminated prematurely."
-            exit 0
-        else 
-            # If it's NOT a match, assuming the first device as the destination device and the current device as a source.
-            DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
-            SRC_DEVICE_NAME=$1
-            echo "Destination device name (auto-detection): $DST_DEVICE_NAME"
-            echo "Source device name (auto-detection): $SRC_DEVICE_NAME"
-        fi # Comparing the attached device with the first device found in system
-    else 
-        # Performing sequential detection
-        DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
-        SRC_DEVICE_NAME=${ATTACHED_SCSI_DISKS[1]}
-        echo "Destination device name (sequential detection): $DST_DEVICE_NAME"
-        echo "Source device name (sequential detection): $SRC_DEVICE_NAME"
-    fi # Specific device binding
-
-    # Checking if the destination device name is set correctly
-    if [ -z "$DST_DEVICE_NAME" ]
-    then
-        echo "*** ERROR *** Unable to get destination device name. The script has terminated unexpectedly."
-        exit 1
-    fi
-
-    # Checking if the source device name is set correctly
-    if [ -z "$SRC_DEVICE_NAME" ]
-    then
-        echo "*** ERROR *** Unable to get source device name. The script has terminated unexpectedly."
-        exit 1
-    fi
-
-    # Getting the destination device id
-    DST_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep --max-count 1 --ignore-case $DST_DEVICE_NAME | awk '{print $9}')
-    if [ -z "$DST_DEVICE_ID" ]
-    then
-        echo "*** WARNING *** Unable to find destination device ID."
-    else
-        echo "Destination device id: $DST_DEVICE_ID"
-    fi
-
-    # Getting the source device id
-    SRC_DEVICE_ID=$(ls -la /dev/disk/by-id/ | grep --max-count 1 --ignore-case $SRC_DEVICE_NAME | awk '{print $9}')
-    if [ -z "$SRC_DEVICE_ID" ]
-    then
-        echo "*** WARNING *** Unable to find source device ID."
-    else
-        echo "Source device id: $SRC_DEVICE_ID"
-    fi
-fi # Checking attached SCSI disks count
-#### End of devices discovery ####
-
-
-#### Checking if the mount points are free ####
-echo ""
-echo "CHECKING MOUNT POINTS AND DEVICES..."
-
-## SOURCE
-# Unmounting the source MOUNT POINT if it's already mounted
-MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
-if [ -z "$MOUNT_STATUS" ] # Is the source mountpoint already mounted
-then
-    echo "Source mount point '$SRC_DEVICE_MOUNT_POINT' is not mounted."
-else
-    # Unmounting already mounted mountpoint
-    echo "Source mount point '$SRC_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
-    umount $SRC_DEVICE_MOUNT_POINT
-
-    # Checking if source mountpoint has been unmounted
-    MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
-    if [ -z "$MOUNT_STATUS" ]
-    then
-        echo "Source mount point has been unmounted successfully."
-    else
-        echo "*** ERROR *** Unable to unmount source mount point. The script has terminated unexpectedly."
-        exit 1
-    fi
-fi # Is the source mountpoint already mounted
-
-# Unmounting the source DEVICE if it's already mounted
-MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_NAME)
-if [ -z "$MOUNT_STATUS" ] # Is the source device already mounted
-then
-    echo "Source device '/dev/$SRC_DEVICE_NAME' is not mounted."
-else
-    echo "Source device '/dev/$SRC_DEVICE_NAME' is already mounted, unmounting..."
-    umount /dev/$SRC_DEVICE_NAME
-
-    # Checking if source device has been unmounted
-    MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_NAME)
-    if [ -z "$MOUNT_STATUS" ]
-    then
-        echo "Source device has been unmounted successfully."
-    else
-        echo "*** ERROR *** Unable to unmount source device. The script has terminated unexpectedly."
-        exit 1
-    fi
-fi # Is the source device already mounted
-
-# DESTINATION
-# Unmounting the source MOUNT POINT if it's already mounted
-MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
-if [ -z "$MOUNT_STATUS" ] # Is the destination mountpoint already mounted
-then
-    echo "Destination mount point '$DST_DEVICE_MOUNT_POINT' is not mounted."
-else
-    echo "Destination mount point '$DST_DEVICE_MOUNT_POINT' is already mounted, unmounting..."
-    umount $DST_DEVICE_MOUNT_POINT
-
-    # Checking if destination mountpoint has been unmounted
-    MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
-    if [ -z "$MOUNT_STATUS" ]
-    then
-        echo "Destination mount point has been unmounted successfully."
-    else
-        echo "*** ERROR *** Unable to unmount destination mount point. The script has terminated unexpectedly."
-        exit 1
-    fi
-fi # Is the destination mountpoint already mounted
-
-# Unmounting the source DEVICE if it's already mounted
-MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_NAME)
-if [ -z "$MOUNT_STATUS" ] # Is the destination device already mounted
-then
-    echo "Destination device '/dev/$DST_DEVICE_NAME' is not mounted."
-else
-    echo "Destination device '/dev/$DST_DEVICE_NAME' is already mounted, unmounting..."
-    umount /dev/$DST_DEVICE_NAME
-
-    # Checking if destination device has been unmounted
-    MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_NAME)
-    if [ -z "$MOUNT_STATUS" ]
-    then
-        echo "Destination device has been unmounted successfully ."
-    else
-        echo "*** ERROR *** Unable to unmount destination device. The script has terminated unexpectedly."
-        exit 1
-    fi
-fi # Is the destination device already mounted
-#### End of checking if the mount points are free ####
-
-
-#### Mounting devices ####
-# Mounting the devices to the mount points
-echo ""
-echo "MOUNTING DEVICES..."
-echo "Mounting source device '$SRC_DEVICE_NAME' to mount point '$SRC_DEVICE_MOUNT_POINT'..."
-
-mount /dev/$SRC_DEVICE_NAME $SRC_DEVICE_MOUNT_POINT
-MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
-if [ -z "$MOUNT_STATUS" ] # Is the source device mountpoint mounted
-then
-    echo "*** ERROR *** Unable to mount source device. The script has terminated unexpectedly."
-    exit 1
-else
-    echo "Source device has been mounted successfully."
-fi # Is the source device mountpoint has been mounted
-
-echo "Mounting destination device '$DST_DEVICE_NAME' to mount point '$DST_DEVICE_MOUNT_POINT'..."
-mount /dev/$DST_DEVICE_NAME $DST_DEVICE_MOUNT_POINT
-MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
-if [ -z "$MOUNT_STATUS" ] # Is the destination device mountpoint mounted
-then
-    echo "*** ERROR *** Unable to mount destination device. The script has terminated unexpectedly."
-    exit 1
-else
-    echo "Destination device has been mounted successfully."
-fi # Checking if destination device mountpoint has been mounted
-#### End of mounting devices ####
-
-
-#### Generating destination folder path ####
-echo ""
-echo "PREPARING DESTINATION FOLDER..."
-if [ -z "$DST_FOLDER_ROOT" ] # Is destination folder set
-then
-    DST_FOLDER_FULL_PATH="$DST_DEVICE_MOUNT_POINT"
-else
-    DST_FOLDER_FULL_PATH="$DST_DEVICE_MOUNT_POINT/$DST_FOLDER_ROOT"
-fi # Is destination folder set
-
-if [ -z "$DST_FOLDER_FULL_PATH" ] # Is destination folder full path generated
-then
-    echo "*** ERROR *** Unable to generate destination folder root path. The script has terminated unexpectedly."
-    exit 1
-else
-    echo "Destination folder root path: $DST_FOLDER_FULL_PATH"
-fi # Is destination folder full path generated
-
-
-# Checking if destination folder name pattern is specified
-if [[ ! -z "$DST_FOLDER_NAME_PATTERN" ]]
-then
-    # Old-way, separate folder mode
-    echo "Generating temporary folder..."
-    DST_FOLDER_FULL_PATH_FAILOVER="$DST_FOLDER_FULL_PATH"
-    DST_FOLDER_FULL_PATH="$(mktemp --directory $DST_FOLDER_FULL_PATH/$DST_FOLDER_NAME_PATTERN)"
-    if [ -z "$DST_FOLDER_FULL_PATH" ] # Is the destination folder full path set
-    then
-        echo "*** WARNING *** Unable to generate unique destination folder path. Will fail-over to all-in-one mode."
-        IS_ALL_IN_ONE_FOLDER=1
-        DST_FOLDER_FULL_PATH="$DST_FOLDER_FULL_PATH_FAILOVER"
-        if [ -z "$DST_FOLDER_FULL_PATH" ]
-        then
-            echo "*** ERROR *** Unable to use failover path. The script has terminated unexpectedly."
-            exit 1
-        fi
-    fi # Is the destination folder full path set
-fi # Checking if destination folder name pattern is specified
-#### End of generating destination folder path ####
-
-
-#### Copying files ####
-echo ""
-echo "COPYING FILES..."
-echo "Source: $SRC_DEVICE_MOUNT_POINT (/dev/$SRC_DEVICE_NAME)"
-echo "Destination: $DST_FOLDER_FULL_PATH (/dev/$DST_DEVICE_NAME)"
-
-if [ $IS_ALL_IN_ONE_FOLDER -eq 0 ] # Operations mode mode selection
-then
-    # Old-way, separate folder mode
-    # Trailing slashes is added to skip parent directory creation on destination
-    echo "Offloading all the work to rsync for the old-way copy mode..."
-    rsync --recursive --human-readable --progress --times "$SRC_DEVICE_MOUNT_POINT/" $DST_FOLDER_FULL_PATH
-
-else # New-way, all-in-one folder mode
-    copy_folder $SRC_DEVICE_MOUNT_POINT $DST_FOLDER_FULL_PATH
-    
-fi # Operations mode mode selection
-
-EXIT_CODE=$?
-echo "Copy process has finished with code: $EXIT_CODE"
-#### End of copying files ####
-
-
-#### Cleaning up ####
-echo ""
-echo "UNMOUNTING DEVICES..."
-# Unmounting the destination devices from the mount point
-umount -f $DST_DEVICE_MOUNT_POINT
-MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $DST_DEVICE_MOUNT_POINT)
-if [ -z "$MOUNT_STATUS" ]
-then
-    echo "The mount point '$DST_DEVICE_MOUNT_POINT' has been unmounted successfully."
-else
-    echo "*** ERROR *** Unable to unmount mount point '$DST_DEVICE_MOUNT_POINT'."
-fi
-
-# Unmounting the source devices from the mount point
-umount $SRC_DEVICE_MOUNT_POINT
-MOUNT_STATUS=$(cat /proc/mounts | grep --max-count 1 --ignore-case $SRC_DEVICE_MOUNT_POINT)
-if [ -z "$MOUNT_STATUS" ]
-then
-    echo "The mount point '$SRC_DEVICE_MOUNT_POINT' has been unmounted successfully."
-else
-    echo "*** ERROR *** Unable to unmount mount point '$SRC_DEVICE_MOUNT_POINT'."
-fi
-#### End of cleaning up ####
-
-echo ""
-echo "THE SCRIPT HAS RUN TO ITS END ($SCRIPT_NAME)"
-
-exit $EXIT_CODE
+}
