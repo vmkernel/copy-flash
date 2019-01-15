@@ -116,7 +116,7 @@ echo "THE NESTED SCRIPT HAS EXITED WITH CODE: $SCRIPT_EXIT_CODE"
 if [ $SCRIPT_EXIT_CODE -ne 255 ]
 then
     echo "THE DEVICE WILL BE HALTED SHORTLY!"
-    #halt
+    halt
 else
     echo "THE DEVICE WILL STAY ON!"
 fi
