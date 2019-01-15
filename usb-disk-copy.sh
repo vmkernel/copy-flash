@@ -10,6 +10,12 @@
 # * Feature: add disk label information (Issue #13).
 # * Feature: check return values (e.g. for mkdir).
 
+### EXIT CODES ###
+#   0 - the process has completed successfully.
+#   1 - an error has occured.
+# 255 - on hold, not enough devices to start the process.
+
+
 #### SETTINGS ####
 # Source device mount point (without a trailing slash!)
 # Specifies an EMPTY folder in a RPi file system to which a source volume will be mounted
@@ -682,8 +688,8 @@ ATTACHED_SCSI_DISKS=( $(ls -la /dev/ | grep --ignore-case --perl-regexp "sd(\w+)
 if [ ${#ATTACHED_SCSI_DISKS[*]} -le 0 ]
 then
     # Got an empty array, assuming no device was found
-    echo "*** WARNING *** No devices found. The script has terminated prematurely."
-    exit 0
+    echo "*** WARNING *** No devices found. At least two devices are required to start the copying process. The script will be terminated."
+    exit 255
 else
     echo "Found ${#ATTACHED_SCSI_DISKS[*]} device(s): ${ATTACHED_SCSI_DISKS[*]}"
 fi # Enumerating all attached SCSI disks using name pattern /dev/sd*1
@@ -692,8 +698,8 @@ fi # Enumerating all attached SCSI disks using name pattern /dev/sd*1
 if [ ${#ATTACHED_SCSI_DISKS[*]} -lt 2 ] 
 then
     # Exit if there's less than two disks attached.
-    echo "*** WARNING *** Not enough devices. Need at least two devices to start a copying process. The script has terminated prematurely."
-    exit 0
+    echo "*** WARNING *** Not enough devices. At least two devices are required to start the copying process. The script will be terminated."
+    exit 255
 else 
     # Two (2) or more disks has been attached
     DST_DEVICE_NAME=""
@@ -704,8 +710,8 @@ else
         if [ "${ATTACHED_SCSI_DISKS[0]}" = "$1" ] # Comparing the attached device with the first device found in system
         then
             # If it's a match, then do nothing, assuming this is the destination device and it's just attached
-            echo "*** WARNING *** Auto-detect is assuming the devices as the first device in the system and will use it as a destination device as soon as a source device appears. Waiting for a source device. The script has terminated prematurely."
-            exit 0
+            echo "*** WARNING *** Auto-detect is assuming the devices as the first device in the system and will use it as a destination device as soon as a source device appears. The script will be terminated."
+            exit 255
         else 
             # If it's NOT a match, assuming the first device as the destination device and the current device as a source.
             DST_DEVICE_NAME=${ATTACHED_SCSI_DISKS[0]}
