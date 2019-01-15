@@ -111,6 +111,16 @@ else
     "$SCRIPT_PATH" $1 | tee "$LOG_FILE"
 fi
 
+SCRIPT_EXIT_CODE=${PIPESTATUS[0]}
+echo "THE NESTED SCRIPT HAS EXITED WITH CODE: $SCRIPT_EXIT_CODE"
+if [ $SCRIPT_EXIT_CODE -ne 255 ]
+then
+    echo "THE DEVICE WILL BE HALTED SHORTLY!"
+    #halt
+else
+    echo "THE DEVICE WILL STAY ON!"
+fi
+
 echo ""
 echo "THE SCRIPT '$SCRIPT_NAME' HAS RUN TO ITS END."
 #### End of starting nested script ####
